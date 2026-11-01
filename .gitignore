@@ -41,3 +41,6 @@ example
 # generated native folders
 /ios
 /android
+
+#Arquivos a serem enviados depois
+
