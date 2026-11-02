@@ -8,4 +8,5 @@ export const COR = {
   linha: '#D9E0EA',
   destaque: '#0E7C86', // dia selecionado
   hoje: '#F2A900', // marcador do dia atual
+  header: "#113056ff"
 };
