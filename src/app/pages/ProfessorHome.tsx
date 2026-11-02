@@ -2,13 +2,13 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    BackHandler,
     LayoutChangeEvent,
     Pressable,
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
     useWindowDimensions
 } from 'react-native';
@@ -16,6 +16,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { buscarAulasDaSemana } from '../api/aulasService';
 import ClassSelectionModal from '../components/ClassSelectionModal';
+import Header from '../components/Header';
 import type { Aula, AulasPorDia } from '../data/aula';
 import { COR } from '../data/cores';
 import { formatarIntervalo, inicioDaSemana, paraISO, somarDias } from '../data/datas';
@@ -61,6 +62,32 @@ export default function EnsalamentoScreen() {
         }
     }, [inicioSemana]);
 
+
+    // Pedido de confirmação pra sair
+    useEffect(() => {
+        const backHandler = BackHandler.addEventListener(
+            'hardwareBackPress',
+            () => {
+                Alert.alert("Tem certeza que deseja sair?", null,
+                    [
+                        {
+                            text: 'Cancelar',
+                            onPress: () => null,
+                            style: 'cancel',
+                        },
+                        {
+                            text: 'Sim',
+                            onPress: () => BackHandler.exitApp(),
+                        }
+                    ]
+
+                )
+                return true;
+            }
+        );
+        return () => backHandler.remove();
+    }, []);
+
     useEffect(() => {
         carregar();
     }, [carregar]);
@@ -104,10 +131,11 @@ export default function EnsalamentoScreen() {
         <SafeAreaView style={styles.tela}>
             <StatusBar barStyle="dark-content" />
 
+            <Header title='Olá, professor' date={formatarIntervalo(dias[0], dias[dias.length - 1])}></Header>
+
             {/* Cabeçalho: título + navegação entre semanas */}
             <View style={styles.cabecalho}>
                 <View style={styles.cabecalhoTopo}>
-                    <Text style={styles.titulo}>Minhas aulas</Text>
                     {!semanaAtual && (
                         <Pressable onPress={irParaHoje} style={styles.botaoHoje} accessibilityRole="button">
                             <Text style={styles.botaoHojeTexto}>Voltar para hoje</Text>
@@ -262,70 +290,96 @@ function SecaoDia({ data, ehHoje, aulas, larguraTablet, aoMedir }: SecaoDiaProps
  * Cartão da aula. A sala é o elemento principal: fica numa "placa" escura à
  * direita, grande, como as placas de porta, para ser lida de relance.
  */
-function CartaoAula({ aula }: { aula: Aula }) {
 
+function CartaoAula({ aula }: { aula: Aula }) {
     const [modalVisible, setModalVisible] = useState(false);
 
     return (
-        <View
-            style={styles.cartao}
-            accessible
-            accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala}, ${aula.bloco}`}
-        >
-            <View style={[styles.cartaoFaixa, { backgroundColor: aula.cor }]} />
+        <Pressable onPress={() => setModalVisible(true)}>
+            {({ pressed }) => (
+                <View
+                    style={[
+                        styles.cartao,
+                        pressed && styles.cartaoPressionado
+                    ]}
+                    accessible
+                    accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala}, ${aula.bloco}`}
+                >
+                    <View
+                        style={[
+                            styles.cartaoFaixa,
+                            { backgroundColor: aula.cor }
+                        ]}
+                    />
 
-            <View style={styles.cartaoHorario}>
-                <Text style={styles.horaInicio}>{aula.horaInicio}</Text>
-                <Text style={styles.horaFim}>{aula.horaFim}</Text>
-            </View>
+                    <View style={styles.cartaoHorario}>
+                        <Text style={styles.horaInicio}>
+                            {aula.horaInicio}
+                        </Text>
+                        <Text style={styles.horaFim}>
+                            {aula.horaFim}
+                        </Text>
+                    </View>
 
-            <View style={styles.cartaoInfo}>
-                <Text style={styles.disciplina} numberOfLines={2}>
-                    {aula.disciplina}
-                </Text>
-                <Text style={styles.professor} numberOfLines={1}>
-                    {aula.professor}
-                </Text>
-            </View>
+                    <View style={styles.cartaoInfo}>
+                        <Text style={styles.disciplina} numberOfLines={2}>
+                            {aula.disciplina}
+                        </Text>
+                        <Text style={styles.professor} numberOfLines={1}>
+                            {aula.professor}
+                        </Text>
+                    </View>
 
-            <View style={styles.placa}>
-                <TouchableOpacity style={styles.placaToque} onPress={() => { setModalVisible(true) }}>
-                    <Text style={styles.placaSala} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
-                        {aula.sala}
-                    </Text>
-                    <Text style={styles.placaBloco} numberOfLines={1}>
-                        {aula.bloco}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-            
-            <View>
-                <ClassSelectionModal isVisible={modalVisible} onClose={() => { setModalVisible(false) }}
-                    rooms={DADOS_SALAS.filter(room => room.ocupada == false)}
-                    onSelectRoom={(room) => {
-                        Alert.alert("Tem certeza que deseja solicitar troca de sala?", "A solicitação será enviada a coordenação imediatamente",
-                            [
-                                {
-                                    text: 'Cancelar',
-                                    style: 'cancel', // Apenas iOS
-                                },
+                    <View style={styles.placa}>
+                        <Text
+                            style={styles.placaSala}
+                            numberOfLines={1}
+                            adjustsFontSizeToFit
+                            minimumFontScale={0.6}
+                        >
+                            {aula.sala}
+                        </Text>
 
-                                {
-                                    text: 'OK',
-                                    onPress: () => {
-                                        aula.sala = room.nome;
-                                        setModalVisible(false);
-                                    },
-                                },
-                            ],
-                            { cancelable: true }
-                        );
-                    }} />
-            </View>
+                        <Text style={styles.placaBloco} numberOfLines={1}>
+                            {aula.bloco}
+                        </Text>
+                    </View>
 
-        </View>
+                    <View>
+                        <ClassSelectionModal
+                            isVisible={modalVisible}
+                            onClose={() => setModalVisible(false)}
+                            rooms={DADOS_SALAS.filter(
+                                room => room.ocupada === false
+                            )}
+                            onSelectRoom={(room) => {
+                                Alert.alert(
+                                    "Tem certeza que deseja solicitar troca de sala?",
+                                    "A solicitação será enviada a coordenação imediatamente",
+                                    [
+                                        {
+                                            text: "Cancelar",
+                                            style: "cancel",
+                                        },
+                                        {
+                                            text: "OK",
+                                            onPress: () => {
+                                                aula.sala = room.nome;
+                                                setModalVisible(false);
+                                            },
+                                        },
+                                    ],
+                                    { cancelable: true }
+                                );
+                            }}
+                        />
+                    </View>
+                </View>
+            )}
+        </Pressable>
     );
 }
+
 
 /* -------------------------------------------------------------------------- */
 /*  ESTILOS                                                                   */
@@ -344,8 +398,12 @@ const styles = StyleSheet.create({
         borderBottomColor: COR.linha,
     },
     cabecalhoTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-    titulo: { fontSize: 24, fontWeight: '700', color: COR.tinta, paddingBottom:30 },
-    botaoHoje: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: COR.tinta },
+    titulo: { fontSize: 24, fontWeight: '700', color: COR.tinta, paddingBottom: 30 },
+    botaoHoje: {
+        paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
+        backgroundColor: COR.tinta,
+        marginLeft: 170
+    },
     botaoHojeTexto: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
 
     navegacaoSemana: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
@@ -435,11 +493,16 @@ const styles = StyleSheet.create({
     placaSala: { fontSize: 19, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
     placaBloco: { fontSize: 8, color: '#B8C4D4', marginTop: 2, textAlign: 'center' },
 
-    placaToque: { alignSelf: 'stretch' }, // estilo do touchableopacity fora da placa de sala
+    //Desfoque ao tocar no card
+    cartaoPressionado: {
+        opacity: 0.65,
+        transform: [{ scale: 0.98 }],
+    },
 
     // Erro
     centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
     erroTexto: { fontSize: 16, color: COR.tinta, textAlign: 'center', marginBottom: 12 },
     botaoTentar: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, backgroundColor: COR.destaque },
     botaoTentarTexto: { color: '#FFFFFF', fontWeight: '600' },
+
 });
