@@ -13,6 +13,7 @@ import {
     useWindowDimensions
 } from 'react-native';
 
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { buscarAulasDaSemana } from '../api/aulasService';
 import ClassSelectionModal from '../components/ClassSelectionModal';
@@ -77,7 +78,7 @@ export default function EnsalamentoScreen() {
                         },
                         {
                             text: 'Sim',
-                            onPress: () => BackHandler.exitApp(),
+                            onPress: () => router.back(),
                         }
                     ]
 
