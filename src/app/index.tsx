@@ -1,145 +1,230 @@
-import { router } from 'expo-router';
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useState } from "react";
+
+import { router } from "expo-router";
+import {
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from "react-native";
+
 import Logo from "./components/Logo";
 import { COR } from "./data/cores";
 
 export default function Page() {
-    return (
-        <SafeAreaView style={styles.container}>
-            <View style={styles.main}>
+  const [matricula, setMatricula] = useState("");
+  const [senha, setSenha] = useState("");
+  const [mostrarSenha, setMostrarSenha] = useState(false);
 
-                {/* Logo */}
-                <View style={styles.logo}>
-                    <Logo />
-                </View>
+  const submitLogin = ()=>{
+    if((matricula.length==0 || senha.length==0) || 
+    (matricula.length>1000 || senha.length>1000)){
+      Alert.alert("Nome ou senha inválidos");
+      return;
+    }
+    //Depois, os dados do login serão enviados para o backend por meio de um endpoint, antes do direcionamento
+    router.navigate("/pages/ProfessorHome");
+  };
 
-                {/* Mensagem */}
-                <View style={styles.titleMessage}>
-                    {/* Barrinha amarela: mesmo destaque usado no "Hoje" da tela de aulas */}
-                    <View style={styles.titleAccent} />
-                    <Text style={styles.titleText}>Saiba para qual sala ir. Nunca mais se perca no campus</Text>
-                </View>
+  return (
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <View style={styles.logoContainer}>
+          <Logo />
+        </View>
 
-                {/* Botões */}
-                <View style={styles.actions}>
+        {/* Formulário */}
+        <View style={styles.form}>
 
-                    <TouchableOpacity
-                        style={[styles.button, styles.buttonProfessor]}
-                        activeOpacity={0.85}
-                        onPress={() => { router.navigate("/pages/ProfessorLogin") }}>
-                        <Text style={styles.text}>Entrar como professor</Text>
-                        <Text style={styles.arrow}>›</Text>
-                    </TouchableOpacity>
+          {/* Nome */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Matrícula ou e-mail institucional:</Text>
 
+            <TextInput
+              style={styles.input}
+              value={matricula}
+              onChangeText={setMatricula}
+              placeholder="Digite sua matrícula"
+              placeholderTextColor={COR.tintaSuave}
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="next"
+            />
+          </View>
 
-                    <TouchableOpacity
-                        style={[styles.button, styles.buttonAluno]}
-                        activeOpacity={0.85}
-                        onPress={() => { router.navigate("/pages/AlunoLogin") }}>
-                        <Text style={styles.text}>Entrar como aluno</Text>
-                        <Text style={styles.arrow}>›</Text>
-                    </TouchableOpacity>
+          {/* Senha */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Senha:</Text>
 
-                </View>
-            </View>
+            <View style={styles.passwordContainer}>
+              <TextInput
+                style={styles.passwordInput}
+                value={senha}
+                onChangeText={setSenha}
+                placeholder="Digite sua senha"
+                placeholderTextColor={COR.tintaSuave}
+                secureTextEntry={!mostrarSenha}
+                returnKeyType="done"
+              />
 
-            {/* Rodapé institucional */}
-            <View style={styles.footer}>
-                <Text style={styles.footerText}>
-                    Aplicativo institucional. Uso exclusivo da comunidade acadêmica.
+              <TouchableOpacity
+                onPress={() => setMostrarSenha(!mostrarSenha)}
+                style={styles.showPassword}
+              >
+                <Text style={styles.showPasswordText}>
+                  {mostrarSenha ? "Ocultar" : "Mostrar"}
                 </Text>
+              </TouchableOpacity>
             </View>
-        </SafeAreaView>
-    );
+          </View>
+
+          {/* Recuperação de senha */}
+          <TouchableOpacity
+            style={styles.forgotPassword}
+            onPress={() => console.log("Recuperar senha")}
+          >
+            <Text style={styles.forgotPasswordText}>
+              Esqueci minha senha
+            </Text>
+          </TouchableOpacity>
+
+           <TouchableOpacity
+            style={styles.loginButton}
+            onPress={submitLogin}
+          >
+            <Text style={styles.loginButtonText}>
+              Entrar
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+
+        
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: COR.fundo,
-        paddingHorizontal: 20,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: COR.fundo,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 45,
+    paddingBottom: 32,
+  },
 
-    main: {
-        flex: 1,
-        width: "100%",
-        alignItems: "center",
-        justifyContent: "space-between",
-        paddingTop: 40,
-        paddingBottom: 32,
-    },
+  logoContainer: {
+    width: "100%",
+    height: 100,
+    alignItems: "center",
+    justifyContent: "center",
+  },
 
-    logo: {
-        width: "100%",
-        alignItems: "center",
-    },
+  // Formulário dentro de um "cartão" branco, como o modal e os cartões de aula
+  form: {
+    width: "100%",
+    marginTop: 100,
+    backgroundColor: COR.superficie,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COR.linha,
+    padding: 20,
+  },
 
-    titleMessage: {
-        justifyContent: "center",
-        alignItems: "center",
-        paddingHorizontal: 8,
-    },
-    titleAccent: {
-        width: 40,
-        height: 5,
-        borderRadius: 3,
-        backgroundColor: COR.hoje,
-        marginBottom: 16,
-    },
-    titleText: {
-        fontSize: 26,
-        lineHeight: 34,
-        fontWeight: "700",
-        color: COR.tinta,
-        textAlign: "center",
-    },
+  inputGroup: {
+    width: "100%",
+    marginBottom: 18,
+  },
 
-    actions: {
-        width: "100%",
-        gap: 14,
-    },
+  label: {
+    fontSize: 14,
+    color: COR.tinta,
+    marginBottom: 8,
+    fontWeight: "600",
+  },
 
-    // Botões no formato dos cartões das outras telas (cantos arredondados, 14)
-    button: {
-        width: "100%",
-        height: 58,
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        paddingHorizontal: 20,
-        borderRadius: 14,
-    },
-    buttonProfessor: {
-        backgroundColor: COR.tinta, // mesma cor da placa de sala
-    },
-    buttonAluno: {
-        backgroundColor: COR.destaque, // mesma cor do dia selecionado
-    },
+  input: {
+    width: "100%",
+    height: 56,
+    backgroundColor: COR.fundo,
+    borderWidth: 1,
+    borderColor: COR.linha,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: COR.tinta,
+  },
 
-    text: {
-        fontSize: 18,
-        fontWeight: "600",
-        color: "#FFFFFF",
-        fontFamily: "bold"
-    },
-    arrow: {
-        fontSize: 28,
-        lineHeight: 30,
-        fontWeight: "600",
-        color: "#FFFFFF",
-    },
+  passwordContainer: {
+    width: "100%",
+    height: 56,
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: COR.fundo,
+    borderWidth: 1,
+    borderColor: COR.linha,
+    borderRadius: 14,
+  },
 
-    // Rodapé
-    footer: {
-        alignItems: "center",
-        paddingVertical: 14,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COR.linha,
-    },
-    footerText: {
-        fontSize: 12,
-        color: COR.tintaSuave,
-        textAlign: "center",
-    },
+  passwordInput: {
+    flex: 1,
+    height: "100%",
+    paddingHorizontal: 16,
+    fontSize: 16,
+    color: COR.tinta,
+  },
+
+  showPassword: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+  },
+
+  showPasswordText: {
+    color: COR.destaque,
+    fontSize: 13,
+    fontWeight: "700",
+  },
+
+  forgotPassword: {
+    alignSelf: "flex-end",
+    marginTop: -6,
+    paddingVertical: 5,
+  },
+
+  forgotPasswordText: {
+    color: COR.destaque,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+
+  // Botão principal na cor da placa de sala, igual ao "Entrar como professor"
+  loginButtonText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
+  },
+
+  loginButton:{
+    backgroundColor: COR.tinta,
+    borderRadius: 14,
+    height: 58,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 22,
+  },
 });
