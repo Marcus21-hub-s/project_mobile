@@ -2,17 +2,18 @@ import { useState } from "react";
 
 import { router } from "expo-router";
 import {
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 
+import { handleLogin } from "./api/login";
 import Logo from "./components/Logo";
 import { COR } from "./data/cores";
 
@@ -21,14 +22,19 @@ export default function Page() {
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
-  const submitLogin = ()=>{
+  const submitLogin = async ()=>{
     if((matricula.length==0 || senha.length==0) || 
     (matricula.length>1000 || senha.length>1000)){
       Alert.alert("Nome ou senha inválidos");
       return;
     }
-    //Depois, os dados do login serão enviados para o backend por meio de um endpoint, antes do direcionamento
-    router.navigate("/pages/ProfessorHome");
+
+    await handleLogin({
+      email: matricula,
+      password: senha,
+      onError: ()=> Alert.alert("Nome ou senha inválidos"),
+      onSuccess: ()=> router.navigate("/pages/ProfessorHome")
+    })
   };
 
   return (

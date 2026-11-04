@@ -31,7 +31,6 @@ import { DADOS_SALAS } from '../mocks/salasMock';
 export default function EnsalamentoScreen() {
     const { width } = useWindowDimensions();
     const ehTablet = width >= LARGURA_TABLET;
-
     const hojeISO = paraISO(new Date());
 
     const [inicioSemana, setInicioSemana] = useState<Date>(() => inicioDaSemana(new Date()));
@@ -63,7 +62,7 @@ export default function EnsalamentoScreen() {
         }
     }, [inicioSemana]);
 
-
+   
     // Pedido de confirmação pra sair
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -127,6 +126,8 @@ export default function EnsalamentoScreen() {
     };
 
     const semanaAtual = paraISO(inicioSemana) === paraISO(inicioDaSemana(new Date()));
+
+    
 
     return (
         <SafeAreaView style={styles.tela}>
@@ -304,7 +305,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                         pressed && styles.cartaoPressionado
                     ]}
                     accessible
-                    accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala}, ${aula.bloco}`}
+                    accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala}, ${aula.sala.bloco}`}
                 >
                     <View
                         style={[
@@ -324,10 +325,10 @@ function CartaoAula({ aula }: { aula: Aula }) {
 
                     <View style={styles.cartaoInfo}>
                         <Text style={styles.disciplina} numberOfLines={2}>
-                            {aula.disciplina}
+                            {aula.disciplina.nome}
                         </Text>
                         <Text style={styles.professor} numberOfLines={1}>
-                            {aula.professor}
+                            {aula.professor.nome}
                         </Text>
                     </View>
 
@@ -338,11 +339,11 @@ function CartaoAula({ aula }: { aula: Aula }) {
                             adjustsFontSizeToFit
                             minimumFontScale={0.6}
                         >
-                            {aula.sala}
+                            {aula.sala.nome}
                         </Text>
 
                         <Text style={styles.placaBloco} numberOfLines={1}>
-                            {aula.bloco}
+                            {aula.sala.bloco}
                         </Text>
                     </View>
 
@@ -365,7 +366,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                                         {
                                             text: "OK",
                                             onPress: () => {
-                                                aula.sala = room.nome;
+                                                aula.sala.nome = room.nome;
                                                 setModalVisible(false);
                                             },
                                         },

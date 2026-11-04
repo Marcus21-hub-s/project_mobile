@@ -1,3 +1,7 @@
+import type { Disciplina } from "./disciplina";
+import type { Professor } from "./professor";
+import { Sala } from "./sala";
+
 /**
  * Uma aula já "ensalada": disciplina + horário + sala, em uma data específica.
  * Este é o formato que o app espera receber. Quando a API existir, basta
@@ -8,10 +12,9 @@
  */
 export type Aula = {
   id: string;
-  disciplina: string;
-  professor: string;
-  sala: string; // ex.: "204"
-  bloco: string; // ex.: "Bloco B"
+  disciplina: Disciplina;
+  professor: Professor;
+  sala: Sala; // ex.: "204"
   horaInicio: string; // "HH:MM"
   horaFim: string; // "HH:MM"
   data: string; // "YYYY-MM-DD"

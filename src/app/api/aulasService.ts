@@ -1,7 +1,5 @@
 import type { Aula } from '../data/aula';
-import { paraISO, somarDias } from '../data/datas';
-import { QTD_DIAS } from '../data/ensalamento';
-import { MODELO_SEMANAL } from '../mocks/aulasMock';
+import { supabase } from '../supabase';
 
 /**
  * >>> PONTO DE INTEGRAÇÃO COM A API <<<
@@ -22,16 +20,41 @@ import { MODELO_SEMANAL } from '../mocks/aulasMock';
  * Erros lançados aqui são capturados pela tela, que mostra a mensagem
  * com o botão "Tentar de novo".
  */
+
+
+// export async function buscarAulasDaSemana(inicioSemana: Date): Promise<Aula[]> {
+//   // Simula a latência de rede para você testar o estado de carregamento.
+//   await new Promise((resolve) => setTimeout(resolve, 350));
+
+//   const aulas: Aula[] = [];
+//   for (let i = 0; i < QTD_DIAS; i++) {
+//     const data = paraISO(somarDias(inicioSemana, i));
+//     (MODELO_SEMANAL[i] ?? []).forEach((modelo, idx) => {
+//       aulas.push({ ...modelo, id: `${data}-${idx}`, data });
+//     });
+//   }
+//   return aulas;
+// }
+
 export async function buscarAulasDaSemana(inicioSemana: Date): Promise<Aula[]> {
   // Simula a latência de rede para você testar o estado de carregamento.
-  await new Promise((resolve) => setTimeout(resolve, 350));
+  const { data, error} = await supabase.from('aulas')
+  .select("*")
+  .gte("data", inicioSemana)
+  .eq("professor_id", 1);
 
-  const aulas: Aula[] = [];
-  for (let i = 0; i < QTD_DIAS; i++) {
-    const data = paraISO(somarDias(inicioSemana, i));
-    (MODELO_SEMANAL[i] ?? []).forEach((modelo, idx) => {
-      aulas.push({ ...modelo, id: `${data}-${idx}`, data });
-    });
-  }
-  return aulas;
+  data?.forEach((item)=>{
+    console.log(item);
+  })
+
+  return data?.map((item): Aula =>({
+  id: String(item.id),
+  disciplina: item.disciplina,
+  professor: item.professor,
+  sala: item.sala,
+  horaInicio: item.horaInicio,
+  horaFim: item.horaFim,
+  data: item.data,
+  cor: "#9b1616ff",
+  }));
 }

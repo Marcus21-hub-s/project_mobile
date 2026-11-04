@@ -9,6 +9,7 @@ export const MODELO_SEMANAL: Record<number, AulaModelo[]> = {
   0: [
     { disciplina: 'Cálculo II', professor: 'Prof. Helena Matos', sala: '204', bloco: 'Bloco B', horaInicio: '08:00', horaFim: '09:40', cor: '#0E7C86' },
     { disciplina: 'Algoritmos', professor: 'Prof. Rui Albuquerque', sala: 'Lab 3', bloco: 'Bloco C', horaInicio: '10:00', horaFim: '11:40', cor: '#7A5AF8' },
+    { disciplina: 'Sexo III', professor: 'Prof. Puta', sala: '666', bloco: 'Bloco 67', horaInicio: '12:00', horaFim: '12:40', cor: '#c71818ff' }
   ],
   1: [
     { disciplina: 'Física Geral', professor: 'Prof. Marta Lins', sala: '101', bloco: 'Bloco A', horaInicio: '08:00', horaFim: '09:40', cor: '#E4572E' },
