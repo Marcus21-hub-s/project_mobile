@@ -26,7 +26,7 @@ export type Aula = {
  * Só existe por causa dos dados mockados (para gerar aulas em qualquer
  * semana). Pode apagar quando a API estiver pronta.
  */
-export type AulaModelo = Omit<Aula, 'id' | 'data'>;
+//export type AulaModelo = Omit<Aula, 'id' | 'data'>;
 
 /** Aulas agrupadas por dia: { "2026-11-02": [Aula, Aula], ... }. */
 export type AulasPorDia = Record<string, Aula[]>;

@@ -89,6 +89,7 @@ export default function EnsalamentoScreen() {
     }, []);
 
     useEffect(() => {
+        console.log(aulas[0]);
         carregar();
     }, [carregar]);
 
@@ -305,7 +306,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                         pressed && styles.cartaoPressionado
                     ]}
                     accessible
-                    accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala}, ${aula.sala.bloco}`}
+                    accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala.nome}, ${aula.sala.bloco}`}
                 >
                     <View
                         style={[
