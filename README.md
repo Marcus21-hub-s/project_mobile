@@ -23,11 +23,11 @@ Abaixo estão os integrantes do grupo e suas respectivas áreas de atuação na 
 
 | Função / Equipe | Integrante(s) | Atribuições |
 | :--- | :--- | :--- |
-| **Gerente Front Mobile** | • Marcus *(Dev)* | Liderança do desenvolvimento front-end mobile e arquitetura do app. |
-| **No-Code** | • Gabriel<br>• Kaio | Prototipagem, automação e desenvolvimento via ferramentas No-Code. |
-| **Dev Alunos** | • João M.<br>• Gabriel Rodrigues | Desenvolvimento das telas, fluxos e funcionalidades focadas no aluno. |
-| **Dev Professor** | • *A definir* | Implementação das regras de negócio e interfaces focadas nos docentes. |
-| **Design (UX/UI)** | • Guilherme<br>• Matheus | Criação dos protótipos de baixa/alta fidelidade e guia de estilo visual. |
+| **Gerente Front Mobile** | • Marcus Vinícius *(Dev)* | Liderança do desenvolvimento front-end mobile e arquitetura do app. |
+| **No-Code** | • Gabriel Andrade<br>• Kaio Mariano | Prototipagem, automação e desenvolvimento via ferramentas No-Code. |
+| **Dev Alunos** | • Welson Dias<br>• Mayara Rayanne<br>• Micaías Alexandre | Desenvolvimento das telas, fluxos e funcionalidades focadas no aluno. |
+| **Dev Professor** | • João M.<br>• Gabriel Rodrigues | Implementação das regras de negócio e interfaces focadas nos docentes. |
+| **Design (UX/UI)** | • Guilherme<br>• Matheus Barcelar<br>• Irlania Felix | Criação dos protótipos de baixa/alta fidelidade e guia de estilo visual. |
 
 ---
 
