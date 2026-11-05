@@ -1,4 +1,4 @@
-import type { AulaModelo } from '../data/aula';
+import type { AulaModelo } from '../data/entities/aula';
 
 /**
  * Dados mockados: aulas que se repetem toda semana.
