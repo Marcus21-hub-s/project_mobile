@@ -28,3 +28,7 @@ export const formatarIntervalo = (inicio: Date, fim: Date): string => {
   const b = `${fim.getDate()} ${MESES_ABREV[fim.getMonth()]}`;
   return `${a} a ${b} ${fim.getFullYear()}`;
 };
+
+export const formatarHora = (hora:string): string =>{
+  return hora.substring(0, 5);
+}

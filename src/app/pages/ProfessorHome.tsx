@@ -329,7 +329,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                             {aula.disciplina.nome}
                         </Text>
                         <Text style={styles.professor} numberOfLines={1}>
-                            {aula.professor.nome}
+                            {aula.disciplina.curso.nome}
                         </Text>
                     </View>
 
@@ -344,7 +344,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                         </Text>
 
                         <Text style={styles.placaBloco} numberOfLines={1}>
-                            {aula.sala.bloco}
+                            Bloco {aula.sala.bloco}
                         </Text>
                     </View>
 

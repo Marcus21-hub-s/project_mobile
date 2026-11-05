@@ -1,5 +1,5 @@
 import type { Aula } from '../data/aula';
-import { paraISO } from '../data/datas';
+import { formatarHora, paraISO } from '../data/datas';
 import { supabase } from '../supabase';
 
 /**
@@ -40,7 +40,7 @@ import { supabase } from '../supabase';
 export async function buscarAulasDaSemana(inicioSemana: Date): Promise<Aula[]> {
   // Simula a latência de rede para você testar o estado de carregamento.
   const { data, error} = await supabase.from('aulas')
-  .select("*,professor(*), disciplina(*), salas(*)")
+  .select("*,professor(*), disciplina(*, curso(nome)), salas(*)")
   .gte("data", paraISO(inicioSemana))
   .eq("professor_id", 1);
   
@@ -57,9 +57,9 @@ export async function buscarAulasDaSemana(inicioSemana: Date): Promise<Aula[]> {
   disciplina: item.disciplina,
   professor: item.professor,
   sala: item.salas,
-  horaInicio: item.horaInicio,
-  horaFim: item.horaFim,
+  horaInicio: formatarHora(item.horaInicio),
+  horaFim: formatarHora(item.horaFim),
   data: item.data,
-  cor: "#9b1616ff",
+  cor: "#9b1616ff"
   }));
 }
