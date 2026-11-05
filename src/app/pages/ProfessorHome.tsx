@@ -23,6 +23,7 @@ import { COR } from '../data/cores';
 import { formatarIntervalo, inicioDaSemana, paraISO, somarDias } from '../data/datas';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../data/ensalamento';
 import { DADOS_SALAS } from '../mocks/salasMock';
+import { supabase } from '../supabase';
 
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
@@ -77,7 +78,10 @@ export default function EnsalamentoScreen() {
                         },
                         {
                             text: 'Sim',
-                            onPress: () => router.back(),
+                            onPress: async () => {
+                                await supabase.auth.signOut();
+                                router.back();
+                            },
                         }
                     ]
 
@@ -134,10 +138,9 @@ export default function EnsalamentoScreen() {
         <SafeAreaView style={styles.tela}>
             <StatusBar barStyle="dark-content" />
 
-            {!carregando && (<Header title={aulas[0].professor.nome} 
-            date={formatarIntervalo(dias[0], dias[dias.length - 1])}></Header>
-            )
-            }
+
+            <Header title={ carregando ? "professor" : aulas[0]?.professor.nome} date={formatarIntervalo(dias[0], dias[dias.length - 1])} />
+
 
             {/* Cabeçalho: título + navegação entre semanas */}
             <View style={styles.cabecalho}>
@@ -226,11 +229,6 @@ export default function EnsalamentoScreen() {
                     contentContainerStyle={[styles.conteudo, ehTablet && styles.conteudoTablet]}
                     showsVerticalScrollIndicator={false}
                 >
-                    {carregando && (
-                        <View style={styles.carregando}>
-                            <ActivityIndicator color={COR.destaque} />
-                        </View>
-                    )}
 
                     {dias.map((d) => {
                         const iso = paraISO(d);
@@ -249,6 +247,12 @@ export default function EnsalamentoScreen() {
                     })}
                 </ScrollView>
             )}
+
+            {carregando && (
+                        <View style={styles.carregando}>
+                            <ActivityIndicator color={COR.destaque} />
+                        </View>
+                    )}
         </SafeAreaView>
     );
 }
@@ -448,7 +452,13 @@ const styles = StyleSheet.create({
     // Conteúdo
     conteudo: { padding: 16, paddingBottom: 40 },
     conteudoTablet: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-    carregando: { position: 'absolute', top: 8, left: 0, right: 0, alignItems: 'center', zIndex: 1 },
+    carregando: {
+    ...StyleSheet.absoluteFill, // cobre a tela toda (topo, laterais e base)
+    alignItems: 'center',
+    justifyContent: 'center', // centraliza o spinner
+    backgroundColor: 'rgba(18, 38, 63, 0.75)', // tom da COR.tinta, igual ao fundo do modal
+    zIndex: 10,
+},
 
     secao: { marginBottom: 20 },
     secaoTablet: { width: '31.5%', marginBottom: 0 }, // 3 colunas

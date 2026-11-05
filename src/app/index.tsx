@@ -46,16 +46,29 @@ export default function Page() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Logos no topo */}
         <View style={styles.logoContainer}>
           <Logo />
+        </View>
+
+        {/* Mensagem de boas-vindas, alinhada à esquerda */}
+        <View style={styles.titleMessage}>
+          {/* Barrinha amarela: mesmo destaque usado no "Hoje" da tela de aulas */}
+          <View style={styles.titleAccent} />
+          <Text style={styles.titleText}>Saiba para qual sala ir. Nunca mais se perca no campus</Text>
+
+          {/* Selo que indica o tipo de acesso desta tela */}
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>Acesso do professor</Text>
+          </View>
         </View>
 
         {/* Formulário */}
         <View style={styles.form}>
 
-          {/* Nome */}
+          {/* Matrícula / e-mail */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Matrícula ou e-mail institucional:</Text>
+            <Text style={styles.label}>Matrícula ou e-mail institucional</Text>
 
             <TextInput
               style={styles.input}
@@ -71,7 +84,7 @@ export default function Page() {
 
           {/* Senha */}
           <View style={styles.inputGroup}>
-            <Text style={styles.label}>Senha:</Text>
+            <Text style={styles.label}>Senha</Text>
 
             <View style={styles.passwordContainer}>
               <TextInput
@@ -105,7 +118,7 @@ export default function Page() {
             </Text>
           </TouchableOpacity>
 
-           <TouchableOpacity
+          <TouchableOpacity
             style={styles.loginButton}
             onPress={submitLogin}
           >
@@ -113,10 +126,14 @@ export default function Page() {
               Entrar
             </Text>
           </TouchableOpacity>
+
+          {/* Rodapé institucional, dentro do cartão */}
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Aplicativo institucional.{"\n"}Uso exclusivo da comunidade acadêmica.
+            </Text>
+          </View>
         </View>
-
-
-        
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -131,20 +148,57 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 45,
-    paddingBottom: 32,
+    paddingBottom: 24,
   },
 
+  // Logos: o container ocupa a largura toda para o componente Logo se distribuir no topo
   logoContainer: {
     width: "100%",
-    height: 100,
-    alignItems: "center",
+    height: 64,
     justifyContent: "center",
+    marginBottom: 24,
   },
 
-  // Formulário dentro de um "cartão" branco, como o modal e os cartões de aula
+  // Bloco do título, alinhado à esquerda
+  titleMessage: {
+    alignItems: "flex-start",
+    paddingHorizontal: 4,
+  },
+  titleAccent: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: COR.hoje,
+    marginBottom: 16,
+  },
+  titleText: {
+    fontSize: 26,
+    lineHeight: 34,
+    fontWeight: "700",
+    color: COR.tinta,
+    textAlign: "left",
+  },
+
+  // Selo "Acesso do professor": verde-azulado translúcido (tom de COR.destaque)
+  badge: {
+    alignSelf: "flex-start",
+    marginTop: 14,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: "rgba(14, 124, 134, 0.12)",
+  },
+  badgeText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: COR.destaque,
+  },
+
+  // Formulário dentro de um "cartão" branco; flexGrow estica o cartão até o fim da tela
   form: {
     width: "100%",
-    marginTop: 100,
+    flexGrow: 1,
+    marginTop: 24,
     backgroundColor: COR.superficie,
     borderRadius: 20,
     borderWidth: 1,
@@ -218,7 +272,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  // Botão principal na cor da placa de sala, igual ao "Entrar como professor"
+  // Botão principal na cor da placa de sala
   loginButtonText: {
     color: "#FFFFFF",
     fontSize: 18,
@@ -232,5 +286,18 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     marginTop: 22,
+  },
+
+  // Rodapé: marginTop "auto" empurra o texto para o fim do cartão
+  footer: {
+    marginTop: "auto",
+    paddingTop: 28,
+    alignItems: "center",
+  },
+  footerText: {
+    fontSize: 11,
+    lineHeight: 16,
+    color: COR.tintaSuave,
+    textAlign: "center",
   },
 });
