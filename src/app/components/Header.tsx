@@ -1,8 +1,8 @@
 
 import {
-    StyleSheet,
-    Text,
-    View
+  StyleSheet,
+  Text,
+  View
 } from "react-native";
 
 import { COR } from "../data/cores";
@@ -19,7 +19,7 @@ export default function Header({ title, date }: HeaderProps) {
       <View style={styles.headerInfo}>
         <Text style={styles.date}>{date}</Text>
 
-        <Text style={styles.title}>{title}</Text>
+        <Text style={styles.title}>Olá, {title}</Text>
       </View>
 
       

@@ -62,7 +62,7 @@ export default function EnsalamentoScreen() {
         }
     }, [inicioSemana]);
 
-   
+
     // Pedido de confirmação pra sair
     useEffect(() => {
         const backHandler = BackHandler.addEventListener(
@@ -128,13 +128,16 @@ export default function EnsalamentoScreen() {
 
     const semanaAtual = paraISO(inicioSemana) === paraISO(inicioDaSemana(new Date()));
 
-    
+
 
     return (
         <SafeAreaView style={styles.tela}>
             <StatusBar barStyle="dark-content" />
 
-            <Header title='Olá, professor' date={formatarIntervalo(dias[0], dias[dias.length - 1])}></Header>
+            {!carregando && (<Header title={aulas[0].professor.nome} 
+            date={formatarIntervalo(dias[0], dias[dias.length - 1])}></Header>
+            )
+            }
 
             {/* Cabeçalho: título + navegação entre semanas */}
             <View style={styles.cabecalho}>

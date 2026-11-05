@@ -40,18 +40,17 @@ import { supabase } from '../supabase';
 export async function buscarAulasDaSemana(inicioSemana: Date): Promise<Aula[]> {
   // Simula a latência de rede para você testar o estado de carregamento.
   const { data, error} = await supabase.from('aulas')
-  .select("*,professor(*), disciplina(*, curso(nome)), salas(*)")
+  .select("*,professor(*), disciplina(*, curso(*)), salas(*)")
   .gte("data", paraISO(inicioSemana))
   .eq("professor_id", 1);
   
 
   if(error){
-    console.log("Erro buscando dados: " + error.message);
+    console.log("Erro buscando dados: " + error);
     throw new Error();
   }
 
    
-
   return data.map((item): Aula =>({
   id: String(item.id),
   disciplina: item.disciplina,
