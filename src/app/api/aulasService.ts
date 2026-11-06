@@ -1,5 +1,5 @@
-import { formatarHora, paraISO } from '../data/datas';
 import type { Aula } from '../data/entities/aula';
+import { formatarHora, paraISO } from '../data/formatacao';
 import { supabase } from '../supabase';
 
 /**

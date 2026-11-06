@@ -21,6 +21,13 @@ export type Aula = {
   cor: string; // cor de destaque da disciplina (faixa lateral do cartão)
 };
 
+export type ProximaAula = {
+    aula: Aula;
+    emAndamento: boolean;
+    rotulo: string;
+    detalhe: string;
+};
+
 /**
  * Molde de uma aula que se repete toda semana: é a `Aula` sem `id` e `data`.
  * Só existe por causa dos dados mockados (para gerar aulas em qualquer

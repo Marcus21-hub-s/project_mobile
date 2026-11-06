@@ -1,5 +1,6 @@
 import { DIAS_COMPLETO, MESES_ABREV } from '../data/ensalamento';
-import { Aula } from './entities/aula';
+import { Aula, ProximaAula } from './entities/aula';
+
 
 // Helpers sem biblioteca externa; troque por date-fns/dayjs se preferir.
 
@@ -44,12 +45,6 @@ export const formatarHora = (hora:string): string =>{
  * - rotulo: "Agora" ou "Próxima aula"
  * - detalhe: linha de baixo do card (ex.: "Até 11:40 · faltam 1h16")
  */
-export type ProximaAula = {
-    aula: Aula;
-    emAndamento: boolean;
-    rotulo: string;
-    detalhe: string;
-};
 
 /** Monta um Date local a partir de "YYYY-MM-DD" e "HH:MM" (aceita também "HH:MM:SS"). */
 const montarData = (data: string, hora: string): Date => {

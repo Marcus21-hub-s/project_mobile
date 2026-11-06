@@ -5,7 +5,7 @@ import {
 } from "react-native";
 
 import { COR } from "../data/cores";
-import type { ProximaAula } from "../data/formatacao";
+import type { ProximaAula } from "../data/entities/aula";
 
 // Tom de verde-azulado mais claro, para ter contraste sobre o fundo escuro do card
 const DESTAQUE_CLARO = "#5CD6D0";

@@ -16,14 +16,12 @@ import {
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { buscarAulasDaSemana } from '../api/aulasService';
-import ClassSelectionModal from '../components/ClassSelectionModal';
 import { COR } from '../data/cores';
 import type { Aula, AulasPorDia } from '../data/entities/aula';
 // Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
 import NextClassCard from '../components/NextClassCard';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../data/ensalamento';
 import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../data/formatacao';
-import { DADOS_SALAS } from '../mocks/salasMock';
 import { supabase } from '../supabase';
 
 /* -------------------------------------------------------------------------- */
@@ -406,12 +404,11 @@ function CartaoAula({ aula }: { aula: Aula }) {
                 )}
             </Pressable>
 
+            {/*
             <ClassSelectionModal
                 isVisible={modalVisible}
                 onClose={() => setModalVisible(false)}
-                rooms={DADOS_SALAS.filter(
-                    room => room.ocupada === false
-                )}
+                rooms=
                 onSelectRoom={(room) => {
                     Alert.alert(
                         "Tem certeza que deseja solicitar troca de sala?",
@@ -424,7 +421,6 @@ function CartaoAula({ aula }: { aula: Aula }) {
                             {
                                 text: "OK",
                                 onPress: () => {
-                                    aula.sala.nome = room.nome;
                                     setSalaAlterada(true);
                                     setModalVisible(false);
                                 },
@@ -433,7 +429,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                         { cancelable: true }
                     );
                 }}
-            />
+            />*/}
         </View>
     );
 }
