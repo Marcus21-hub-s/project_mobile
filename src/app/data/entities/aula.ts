@@ -1,5 +1,4 @@
 import type { Disciplina } from "./disciplina";
-import type { Professor } from "./professor";
 import { Sala } from "./sala";
 
 /**
@@ -13,7 +12,6 @@ import { Sala } from "./sala";
 export type Aula = {
   id: string;
   disciplina: Disciplina;
-  professor: Professor;
   sala: Sala; // ex.: "204"
   horaInicio: string; // "HH:MM"
   horaFim: string; // "HH:MM"

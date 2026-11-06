@@ -13,6 +13,7 @@ import {
   View
 } from "react-native";
 
+import { useAuth } from "./api/authContext";
 import { handleLogin } from "./api/login";
 import Logo from "./components/Logo";
 import { COR } from "./data/cores";
@@ -21,6 +22,7 @@ export default function Page() {
   const [matricula, setMatricula] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
+  const {iniciarSessao} = useAuth();
 
   const submitLogin = async ()=>{
     if((matricula.length==0 || senha.length==0) || 
@@ -33,7 +35,11 @@ export default function Page() {
       email: matricula,
       password: senha,
       onError: ()=> Alert.alert("Nome ou senha inválidos"),
-      onSuccess: ()=> router.navigate("/pages/ProfessorHome")
+      onSuccess: (sessao)=> {
+        iniciarSessao(sessao);
+        router.navigate("/pages/ProfessorHome")
+
+      }
     })
   };
 

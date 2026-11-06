@@ -19,16 +19,16 @@ import { buscarAulasDaSemana } from '../api/aulasService';
 import { COR } from '../data/cores';
 import type { Aula, AulasPorDia } from '../data/entities/aula';
 // Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
+import { useAuth } from '../api/authContext';
 import NextClassCard from '../components/NextClassCard';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../data/ensalamento';
 import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../data/formatacao';
-import { supabase } from '../supabase';
 
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
 /* -------------------------------------------------------------------------- */
 
-export default function EnsalamentoScreen() {
+export default function ProfessorHome() {
     const { width } = useWindowDimensions();
     const ehTablet = width >= LARGURA_TABLET;
     const hojeISO = paraISO(new Date());
@@ -43,6 +43,9 @@ export default function EnsalamentoScreen() {
 
     // Relógio da tela: atualiza a cada 30 s para o card do topo manter o "faltam ..." correto
     const [agora, setAgora] = useState(() => new Date());
+
+
+    const {professor, encerrarSessao} = useAuth();
 
     const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     // Guarda a posição vertical (y) de cada dia para o scroll ao tocar na faixa de dias.
@@ -59,7 +62,7 @@ export default function EnsalamentoScreen() {
         setCarregando(true);
         setErro(null);
         try {
-            setAulas(await buscarAulasDaSemana(inicioSemana));
+            setAulas(await buscarAulasDaSemana(inicioSemana, professor?.id));
         } catch (e) {
             setErro('Não foi possível carregar as aulas desta semana.');
         } finally {
@@ -83,7 +86,7 @@ export default function EnsalamentoScreen() {
                         {
                             text: 'Sim',
                             onPress: async () => {
-                                await supabase.auth.signOut();
+                                await encerrarSessao();
                                 router.back();
                             },
                         }
@@ -94,7 +97,7 @@ export default function EnsalamentoScreen() {
             }
         );
         return () => backHandler.remove();
-    }, []);
+    }, [encerrarSessao]);
 
     useEffect(() => {
         console.log(aulas[0]);
@@ -120,17 +123,10 @@ export default function EnsalamentoScreen() {
     /** Aula em andamento ou a mais próxima, para o card do topo. */
     const proxima = useMemo(() => encontrarProximaAula(aulas, agora), [aulas, agora]);
 
-    const nomeProfessor = aulas[0]?.professor.nome;
+    const nomeProfessor = professor?.nome;
     const intervaloCurto = formatarIntervaloCurto(dias[0], dias[dias.length - 1]);
 
-    // ---------------------------------------------------------------------
-    // NAVEGAÇÃO ENTRE SEMANAS (desativada). Para reativar:
-    //   1) descomente este bloco e a linha `semanaAtual`;
-    //   2) use o `useState` com `setInicioSemana` indicado no topo do componente;
-    //   3) descomente o bloco de JSX "NAVEGAÇÃO ENTRE SEMANAS" no return;
-    //   4) importe `formatarIntervalo` de '../data/datas'.
-    // ---------------------------------------------------------------------
-    //
+    
     // /** Troca de semana (delta = -1 anterior, +1 próxima) e escolhe um dia selecionado coerente. */
     // const mudarSemana = (delta: number) => {
     //     const novoInicio = somarDias(inicioSemana, delta * 7);
@@ -215,7 +211,7 @@ export default function EnsalamentoScreen() {
                     </Pressable>
                 </View>
                 */}
-
+                
                 {/* Faixa de dias: atalho para pular até o dia no scroll */}
                 <View style={styles.faixaDias}>
                     {dias.map((d) => {
