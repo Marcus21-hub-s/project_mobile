@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import { router } from "expo-router";
 import {
+  ActivityIndicator,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -22,25 +23,29 @@ export default function Page() {
   const [matricula, setMatricula] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const {iniciarSessao} = useAuth();
+  const [carregando, setCarregando] = useState(false);
 
-  const submitLogin = async ()=>{
-    if((matricula.length==0 || senha.length==0) || 
-    (matricula.length>1000 || senha.length>1000)){
+  const { iniciarSessao } = useAuth();
+
+  const submitLogin = async () => {
+    if ((matricula.length == 0 || senha.length == 0) ||
+      (matricula.length > 1000 || senha.length > 1000)) {
       Alert.alert("Nome ou senha inválidos");
       return;
     }
 
+    setCarregando(true);
     await handleLogin({
       email: matricula,
       password: senha,
-      onError: ()=> Alert.alert("Nome ou senha inválidos"),
-      onSuccess: (sessao)=> {
+      onError: () => Alert.alert("Nome ou senha inválidos"),
+      onSuccess: (sessao) => {
         iniciarSessao(sessao);
-        router.navigate("/pages/ProfessorHome")
-
+        router.replace("/pages/ProfessorHome")
       }
-    })
+    });
+    setCarregando(false);
+
   };
 
   return (
@@ -52,6 +57,12 @@ export default function Page() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
+
+        {carregando && (
+          <View style={styles.carregando}>
+            <ActivityIndicator color={COR.destaque} />
+          </View>
+        )}
         {/* Logos no topo */}
         <View style={styles.logoContainer}>
           <Logo />
@@ -285,7 +296,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-  loginButton:{
+  loginButton: {
     backgroundColor: COR.tinta,
     borderRadius: 14,
     height: 58,
@@ -305,5 +316,13 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: COR.tintaSuave,
     textAlign: "center",
+  },
+
+  carregando: {
+    ...StyleSheet.absoluteFill, // cobre a tela toda (topo, laterais e base)
+    alignItems: 'center',
+    justifyContent: 'center', // centraliza o spinner
+    backgroundColor: 'rgba(18, 38, 63, 0.75)', // tom da COR.tinta, igual ao fundo do modal
+    zIndex: 10,
   },
 });

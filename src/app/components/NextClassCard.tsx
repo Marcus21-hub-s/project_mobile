@@ -40,10 +40,10 @@ export default function NextClassCard({ proxima }: HeaderProps) {
                 </View>
 
                 <Text style={styles.disciplina} numberOfLines={2}>
-                    {aula.disciplina.nome}
+                    {aula.disciplina}
                 </Text>
                 <Text style={styles.horario} numberOfLines={1}>
-                    {aula.horaInicio} – {aula.horaFim} · {aula.disciplina.curso.nome}
+                    {aula.horaInicio} – {aula.horaFim} · {aula.turma.nome}
                 </Text>
                 <Text style={styles.detalhe} numberOfLines={1}>
                     {detalhe}

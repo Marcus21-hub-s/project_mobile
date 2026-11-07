@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -13,7 +13,7 @@ import {
     useWindowDimensions
 } from 'react-native';
 
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { buscarAulasDaSemana } from '../api/aulasService';
 import { COR } from '../data/cores';
@@ -72,7 +72,8 @@ export default function ProfessorHome() {
 
 
     // Pedido de confirmação pra sair
-    useEffect(() => {
+    useFocusEffect(
+        useCallback(() => {
         const backHandler = BackHandler.addEventListener(
             'hardwareBackPress',
             () => {
@@ -87,7 +88,7 @@ export default function ProfessorHome() {
                             text: 'Sim',
                             onPress: async () => {
                                 await encerrarSessao();
-                                router.back();
+                                router.replace("/");
                             },
                         }
                     ]
@@ -97,7 +98,7 @@ export default function ProfessorHome() {
             }
         );
         return () => backHandler.remove();
-    }, [encerrarSessao]);
+    }, [encerrarSessao]));
 
     useEffect(() => {
         console.log(aulas[0]);
@@ -349,7 +350,10 @@ function CartaoAula({ aula }: { aula: Aula }) {
                 <Text style={styles.rotuloHoraFim}>{aula.horaFim}</Text>
             </View>
 
-            <Pressable onPress={() => setModalVisible(true)}>
+            <Pressable onPress={() => router.push({
+                pathname: "/pages/ProfessorRequests",
+                params: {aula: JSON.stringify(aula)}
+            })}>
                 {({ pressed }) => (
                     <View
                         style={[
@@ -357,7 +361,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                             pressed && styles.cartaoPressionado
                         ]}
                         accessible
-                        accessibilityLabel={`${aula.disciplina.nome}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala.nome}, bloco ${aula.sala.bloco}`}
+                        accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala.nome}, bloco ${aula.sala.bloco}`}
                     >
                         <View
                             style={[
@@ -369,7 +373,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                         <View style={styles.cartaoInfo}>
                             <View style={styles.tituloLinha}>
                                 <Text style={styles.disciplina} numberOfLines={2}>
-                                    {aula.disciplina.nome}
+                                    {aula.disciplina}
                                 </Text>
                                 {salaAlterada && (
                                     <View style={styles.seloAlterada}>
@@ -378,7 +382,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
                                 )}
                             </View>
                             <Text style={styles.detalheAula} numberOfLines={1}>
-                                {aula.horaInicio} – {aula.horaFim} · {aula.disciplina.curso.nome}
+                                {aula.horaInicio} – {aula.horaFim} · {aula.turma.nome}
                             </Text>
                         </View>
 

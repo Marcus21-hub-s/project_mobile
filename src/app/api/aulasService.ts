@@ -40,7 +40,7 @@ import { supabase } from '../supabase';
 export async function buscarAulasDaSemana(inicioSemana: Date, idProfessor: number | undefined): Promise<Aula[]> {
   // Simula a latência de rede para você testar o estado de carregamento.
   const { data, error} = await supabase.from('aulas')
-  .select("*, disciplina(*, curso(*)), salas(*)")
+  .select("*, turmas(*),disciplina(*), salas(*)")
   .gte("data", paraISO(inicioSemana))
   .eq("professor_id", idProfessor);
   
@@ -53,7 +53,8 @@ export async function buscarAulasDaSemana(inicioSemana: Date, idProfessor: numbe
    
   return data.map((item): Aula =>({
   id: String(item.id),
-  disciplina: item.disciplina,
+  disciplina: item.disciplina.nome,
+  turma: item.turmas,
   sala: item.salas,
   horaInicio: formatarHora(item.horaInicio),
   horaFim: formatarHora(item.horaFim),

@@ -1,5 +1,5 @@
-import type { Disciplina } from "./disciplina";
 import { Sala } from "./sala";
+import { Turma } from "./turma";
 
 /**
  * Uma aula já "ensalada": disciplina + horário + sala, em uma data específica.
@@ -11,7 +11,8 @@ import { Sala } from "./sala";
  */
 export type Aula = {
   id: string;
-  disciplina: Disciplina;
+  disciplina: string;
+  turma: Turma;
   sala: Sala; // ex.: "204"
   horaInicio: string; // "HH:MM"
   horaFim: string; // "HH:MM"
