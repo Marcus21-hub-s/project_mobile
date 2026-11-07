@@ -19,7 +19,12 @@ type SeloProps = {
 
 /** Pílula pequena de status (ex.: "Livre neste horário", "Pendente", "Aprovada"). */
 export default function Selo({ texto, tom = "neutro" }: SeloProps) {
-    const cores = TONS[tom];
+    // Se vier um tom que não existe em TONS, usa o neutro em vez de quebrar
+    // com "Cannot read properties of undefined (reading 'fundo')".
+    const cores = TONS[tom] ?? TONS.neutro;
+    if (!TONS[tom]) {
+        console.warn(`Selo: tom inválido "${String(tom)}" (texto: "${texto}")`);
+    }
 
     return (
         <View style={[styles.selo, { backgroundColor: cores.fundo }]}>

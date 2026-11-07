@@ -1,5 +1,4 @@
 // paleta de cores usada no resto do projeto
-
 export const COR = {
   fundo: '#EEF2F7',
   superficie: '#FFFFFF',

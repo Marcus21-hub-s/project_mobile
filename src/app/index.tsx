@@ -74,7 +74,7 @@ export default function Page() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-
+        
         {carregando && (
           <View style={styles.carregando}>
             <ActivityIndicator color={COR.destaque} />
