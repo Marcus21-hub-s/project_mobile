@@ -1,5 +1,5 @@
 import type { Professor } from "../data/entities/professor";
-import { supabase } from "../supabase";
+import { supabase } from "../src/app/supabase";
 import type { SessaoUsuario } from "./authContext";
 
 /**

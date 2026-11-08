@@ -1,6 +1,6 @@
 import type { Aula } from '../data/entities/aula';
 import { formatarHora, paraISO } from '../data/formatacao';
-import { supabase } from '../supabase';
+import { supabase } from '../src/app/supabase';
 
 /**
  * >>> PONTO DE INTEGRAÇÃO COM A API <<<

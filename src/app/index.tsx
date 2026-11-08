@@ -13,10 +13,10 @@ import {
   View
 } from "react-native";
 
-import { useAuth } from "./api/authContext";
-import { handleLogin } from "./api/login";
-import Logo from "./components/Logo";
-import { COR } from "./data/cores";
+import { useAuth } from "../../api/authContext";
+import { handleLogin } from "../../api/login";
+import Logo from "../../components/Logo";
+import { COR } from "../../data/cores";
 
 export default function Page() {
   const [matricula, setMatricula] = useState("");

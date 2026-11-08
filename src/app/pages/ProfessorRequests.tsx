@@ -13,19 +13,19 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { buscarAulasDaSemana } from "../api/aulasService";
-import { buscarSalasParaTroca } from "../api/requestService";
-import AulaResumoCard from "../components/AulaResumoCard";
-import ClassSelectionModal from "../components/ClassSelectionModal";
-import SolicitacaoCard from "../components/RequestCard";
-import Selo from "../components/Selo";
-import { COR } from "../data/cores";
-import type { Aula } from "../data/entities/aula";
-import type { Sala } from "../data/entities/sala";
-import type { Solicitacao } from "../data/entities/solicitacao";
-import { encontrarProximaAula, inicioDaSemana } from "../data/formatacao";
+import { buscarAulasDaSemana } from "../../../api/aulasService";
+import { buscarSalasParaTroca } from "../../../api/requestService";
+import AulaResumoCard from "../../../components/AulaResumoCard";
+import ClassSelectionModal from "../../../components/ClassSelectionModal";
+import SolicitacaoCard from "../../../components/RequestCard";
+import Selo from "../../../components/Selo";
+import { COR } from "../../../data/cores";
+import type { Aula } from "../../../data/entities/aula";
+import type { Sala } from "../../../data/entities/sala";
+import type { Solicitacao } from "../../../data/entities/solicitacao";
+import { encontrarProximaAula, inicioDaSemana } from "../../../data/formatacao";
 
-import { useAuth } from '../api/authContext';
+import { useAuth } from '../../../api/authContext';
 
 /**
  * A aula chega pela navegação como texto JSON no parâmetro `aula`, por exemplo:

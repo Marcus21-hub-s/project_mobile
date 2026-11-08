@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { SessaoProvider } from "./api/authContext";
+import { SessaoProvider } from "../../api/authContext";
 
 export default function RootLayout() {
     return (

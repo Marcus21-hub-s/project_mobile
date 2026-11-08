@@ -1,6 +1,6 @@
 import type { Aula } from "../data/entities/aula";
 import type { Sala } from "../data/entities/sala";
-import { supabase } from "../supabase";
+import { supabase } from "../src/app/supabase";
 
 /**
  * >>> CONSULTA PROVISÓRIA NO SUPABASE <<<

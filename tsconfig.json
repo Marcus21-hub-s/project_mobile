@@ -7,7 +7,7 @@
         "./src/*"
       ],
       "@/assets/*": [
-        "C:/Users/adm/OneDrive/Desktop/project_mobile/assets/*"
+        "/home/gabriel/Projects/ensalamento/assets/*"
       ]
     }
   },

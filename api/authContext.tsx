@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useCallback, useContext, useMemo, useState } from "react";
 
 import type { Professor } from "../data/entities/professor";
-import { supabase } from "../supabase";
+import { supabase } from "../src/app/supabase";
 
 /**
  * Dados guardados enquanto o usuário está logado.

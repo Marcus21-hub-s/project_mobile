@@ -1,4 +1,4 @@
-import { DIAS_COMPLETO, MESES_ABREV } from '../data/ensalamento';
+import { DIAS_COMPLETO, MESES_ABREV } from './ensalamento';
 import { Aula, ProximaAula } from './entities/aula';
 
 

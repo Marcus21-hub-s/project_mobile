@@ -15,14 +15,14 @@ import {
 
 import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { buscarAulasDaSemana } from '../api/aulasService';
-import { COR } from '../data/cores';
-import type { Aula, AulasPorDia } from '../data/entities/aula';
+import { buscarAulasDaSemana } from '../../../api/aulasService';
+import { COR } from '../../../data/cores';
+import type { Aula, AulasPorDia } from '../../../data/entities/aula';
 // Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
-import { useAuth } from '../api/authContext';
-import NextClassCard from '../components/NextClassCard';
-import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../data/ensalamento';
-import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../data/formatacao';
+import { useAuth } from '../../../api/authContext';
+import NextClassCard from '../../../components/NextClassCard';
+import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../../../data/ensalamento';
+import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../../../data/formatacao';
 
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
