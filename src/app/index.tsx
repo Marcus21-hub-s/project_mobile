@@ -3,7 +3,6 @@ import { useState } from "react";
 import { router } from "expo-router";
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -24,13 +23,31 @@ export default function Page() {
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
+  const [errorview, setErrorview] = useState("")
 
   const { iniciarSessao } = useAuth();
+
+  // Checa o tamanho de errorview e renderiza uma View com o texto.
+  // Caso não houver, a função reterna nada e "apaga" a View na renderização.
+
+  function errorRender() {
+
+    if (errorview.length > 0) {
+
+      return (
+        <View style={styles.errormsg}>
+          <Text style={styles.errormsgtxt}>{errorview}</Text>
+        </View>
+      )
+
+    }
+  
+  }
 
   const submitLogin = async () => {
     if ((matricula.length == 0 || senha.length == 0) ||
       (matricula.length > 1000 || senha.length > 1000)) {
-      Alert.alert("Nome ou senha inválidos");
+      setErrorview("Adicione um valor válido.")
       return;
     }
 
@@ -38,7 +55,7 @@ export default function Page() {
     await handleLogin({
       email: matricula,
       password: senha,
-      onError: () => Alert.alert("Nome ou senha inválidos"),
+      onError: () => setErrorview("E-mail, matrícula ou senha não foram encontrados."),
       onSuccess: (sessao) => {
         iniciarSessao(sessao);
         router.replace("/pages/ProfessorHome")
@@ -83,6 +100,9 @@ export default function Page() {
         {/* Formulário */}
         <View style={styles.form}>
 
+          {/* Informativo para erro no login (condiconal) */}
+          {errorRender()}
+
           {/* Matrícula / e-mail */}
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Matrícula ou e-mail institucional</Text>
@@ -96,6 +116,7 @@ export default function Page() {
               autoCapitalize="words"
               autoCorrect={false}
               returnKeyType="next"
+              onPressIn={() => setErrorview("")}
             />
           </View>
 
@@ -112,6 +133,7 @@ export default function Page() {
                 placeholderTextColor={COR.tintaSuave}
                 secureTextEntry={!mostrarSenha}
                 returnKeyType="done"
+                onPressIn={() => setErrorview("")}
               />
 
               <TouchableOpacity
@@ -287,6 +309,18 @@ const styles = StyleSheet.create({
     color: COR.destaque,
     fontSize: 14,
     fontWeight: "600",
+  },
+
+  // Mensagem no topo do formulário caso o processo de login anuncie algum erro
+  errormsg: {
+    backgroundColor: '#c2012e',
+    padding: 10,
+    marginBottom: 18,
+    borderRadius: 14,
+  },
+
+  errormsgtxt: {
+    color: 'white',
   },
 
   // Botão principal na cor da placa de sala
