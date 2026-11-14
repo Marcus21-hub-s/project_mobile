@@ -10,8 +10,8 @@ export default function RootLayout() {
                 }
             }>
                 <Stack.Screen name="index"/>
-                <Stack.Screen name="/pages/ProfessorHome"/>
-                <Stack.Screen name="/pages/ProfessorRequests" />
+                <Stack.Screen name="pages" />
+                
             </Stack>
         </SessaoProvider>
     )
