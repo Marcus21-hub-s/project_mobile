@@ -1,5 +1,13 @@
-import { useEffect, useState } from "react";
-import { FlatList, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useState } from "react";
+import {
+    ActivityIndicator,
+    FlatList,
+    Pressable,
+    StatusBar,
+    StyleSheet,
+    Text,
+    View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../../api/authContext";
@@ -12,23 +20,59 @@ import { ehRecente, iniciais } from "../../../data/formatacao";
 
 type Aba = "novos" | "anteriores";
 
+const MENSAGEM_ERRO = "Não foi possível carregar os avisos.";
+
 export default function ProfessorAvisos() {
     const { professor } = useAuth();
+    const idProfessor = professor?.id;
     const [avisos, setAvisos] = useState<Aviso[]>([]);
     const [aba, setAba] = useState<Aba>("novos");
+    const [carregando, setCarregando] = useState(true);
+    const [atualizando, setAtualizando] = useState(false);
+    const [erro, setErro] = useState<string | null>(null);
 
-    // Carrega os avisos do professor logado (a busca em si está em api/avisosService.ts)
+    // Primeira carga da tela (a busca em si está em api/avisosService.ts)
     useEffect(() => {
         let ativo = true; // evita atualizar o estado se a tela já foi fechada
 
-        buscarAvisos(professor?.id).then((dados) => {
-            if (ativo) setAvisos(dados);
-        });
+        buscarAvisos(idProfessor)
+            .then((dados) => {
+                if (ativo) setAvisos(dados);
+            })
+            .catch(() => {
+                if (ativo) setErro(MENSAGEM_ERRO);
+            })
+            .finally(() => {
+                if (ativo) setCarregando(false);
+            });
 
         return () => {
             ativo = false;
         };
-    }, [professor?.id]);
+    }, [idProfessor]);
+
+    // Busca de novo (puxar para atualizar ou "Tentar de novo")
+    const recarregar = useCallback(async () => {
+        setErro(null);
+        try {
+            setAvisos(await buscarAvisos(idProfessor));
+        } catch {
+            setErro(MENSAGEM_ERRO);
+        } finally {
+            setAtualizando(false);
+            setCarregando(false);
+        }
+    }, [idProfessor]);
+
+    const puxarParaAtualizar = () => {
+        setAtualizando(true);
+        recarregar();
+    };
+
+    const tentarDeNovo = () => {
+        setCarregando(true);
+        recarregar();
+    };
 
     // Mais recentes primeiro; "Novos" = últimos dias, "Anteriores" = o resto
     const ordenados = [...avisos].sort(
@@ -79,13 +123,33 @@ export default function ProfessorAvisos() {
                 </Pressable>
             </View>
 
-            <FlatList
-                data={aba === "novos" ? novos : anteriores}
-                keyExtractor={(aviso) => String(aviso.id)}
-                renderItem={({ item }) => <AvisoCard aviso={item} />}
-                ItemSeparatorComponent={() => <View style={styles.separador} />}
-                contentContainerStyle={styles.listaConteudo}
-            />
+            {carregando ? (
+                <View style={styles.centro}>
+                    <ActivityIndicator size="large" color={COR.destaque} />
+                </View>
+            ) : erro ? (
+                <View style={styles.centro}>
+                    <Text style={styles.mensagem}>{erro}</Text>
+                    <Pressable style={styles.botaoTentar} onPress={tentarDeNovo} accessibilityRole="button">
+                        <Text style={styles.botaoTentarTexto}>Tentar de novo</Text>
+                    </Pressable>
+                </View>
+            ) : (
+                <FlatList
+                    data={aba === "novos" ? novos : anteriores}
+                    keyExtractor={(aviso) => String(aviso.id)}
+                    renderItem={({ item }) => <AvisoCard aviso={item} />}
+                    ItemSeparatorComponent={() => <View style={styles.separador} />}
+                    contentContainerStyle={styles.listaConteudo}
+                    refreshing={atualizando}
+                    onRefresh={puxarParaAtualizar}
+                    ListEmptyComponent={
+                        <Text style={[styles.mensagem, styles.vazio]}>
+                            {aba === "novos" ? "Nenhum aviso recente." : "Nenhum aviso anterior."}
+                        </Text>
+                    }
+                />
+            )}
         </SafeAreaView>
     );
 }
@@ -162,5 +226,31 @@ const styles = StyleSheet.create({
     },
     separador: {
         height: 14,
+    },
+    centro: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+    },
+    mensagem: {
+        fontSize: 15,
+        color: COR.tintaSuave,
+        textAlign: "center",
+    },
+    vazio: {
+        marginTop: 48,
+    },
+    botaoTentar: {
+        marginTop: 16,
+        backgroundColor: COR.tinta,
+        borderRadius: 14,
+        paddingHorizontal: 22,
+        paddingVertical: 12,
+    },
+    botaoTentarTexto: {
+        color: "#FFFFFF",
+        fontSize: 15,
+        fontWeight: "600",
     },
 });
