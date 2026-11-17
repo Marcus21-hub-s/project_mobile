@@ -35,6 +35,20 @@ export default function PagesLayout() {
         }}
       />
 
+            <Tabs.Screen
+        name="ProfessorAvisos"
+        options={{
+          title: "Avisos",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons
+              name="notifications-outline"
+              color={color as string}
+              size={size}
+            />
+          ),
+        }}
+      />
+
       <Tabs.Screen
         name="ProfessorRequests"
         options={{
