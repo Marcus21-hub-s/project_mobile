@@ -11,7 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "../../../api/authContext";
-import { buscarAvisos } from "../../../api/avisosService";
+import { buscarAvisos, marcarAvisoComoLido } from "../../../api/avisosService";
 import AvisoCard from "../../../components/AvisoCard";
 import { COR } from "../../../data/cores";
 import { DIAS_PARA_SER_NOVO, contarNaoLidos } from "../../../data/entities/aviso";
@@ -72,6 +72,18 @@ export default function ProfessorAvisos() {
     const tentarDeNovo = () => {
         setCarregando(true);
         recarregar();
+    };
+
+    // Tocar num card marca como lido (some o ponto e o contador diminui)
+    const abrirAviso = (aviso: Aviso) => {
+        if (aviso.lido) return;
+
+        const alterarLido = (id: number, lido: boolean) =>
+            setAvisos((atual) => atual.map((a) => (a.id === id ? { ...a, lido } : a)));
+
+        alterarLido(aviso.id, true);
+        // Se o banco falhar, volta para "não lido" para não perder o aviso
+        marcarAvisoComoLido(aviso.id).catch(() => alterarLido(aviso.id, false));
     };
 
     // Mais recentes primeiro; "Novos" = últimos dias, "Anteriores" = o resto
@@ -138,7 +150,7 @@ export default function ProfessorAvisos() {
                 <FlatList
                     data={aba === "novos" ? novos : anteriores}
                     keyExtractor={(aviso) => String(aviso.id)}
-                    renderItem={({ item }) => <AvisoCard aviso={item} />}
+                    renderItem={({ item }) => <AvisoCard aviso={item} onPress={abrirAviso} />}
                     ItemSeparatorComponent={() => <View style={styles.separador} />}
                     contentContainerStyle={styles.listaConteudo}
                     refreshing={atualizando}
