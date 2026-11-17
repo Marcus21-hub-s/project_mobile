@@ -17,6 +17,16 @@ O foco principal do aplicativo é prover aos **professores** uma consulta rápid
 
 ---
 
+## 🚀 Funcionalidades Implementadas / Atualizações
+
+- 🧭 **Navbar Inferior (v1):** Introdução da primeira versão da barra de navegação inferior para agilizar a troca entre as telas principais do aplicativo.
+- 📝 **Tela de Solicitações:** Interface dedicada ao registro e acompanhamento de pedidos (como troca ou reserva de salas).
+- 🗄️ **Integração com Banco de Dados:** Consulta de dados em tempo real utilizando uma base provisória no **Supabase**.
+- 🔐 **Autenticação Segura:** Controle de acesso e gerenciamento de sessão implementados com **JWT** via **Supabase**.
+- 📆 **Ajuste na Navegação:** Remoção da visualização/navegação semanal para adequar o fluxo estritamente ao modelo de requisitos definido.
+
+---
+
 ## 👥 Equipe e Divisão de Funções
 
 Abaixo estão os integrantes do grupo e suas respectivas áreas de atuação na construção da plataforma:
@@ -35,6 +45,7 @@ Abaixo estão os integrantes do grupo e suas respectivas áreas de atuação na 
 
 *(Adicione aqui as tecnologias utilizadas no projeto)*
 - Framework Mobile: 
+- Backend / Banco de Dados: Supabase (PostgreSQL & Auth JWT)
 - Ferramentas No-Code: 
 - UI/UX Design: Figma
 
