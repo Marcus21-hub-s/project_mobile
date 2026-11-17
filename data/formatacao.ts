@@ -116,3 +116,34 @@ export const formatarIntervaloCurto = (inicio: Date, fim: Date): string => {
     return `${inicio.getDate()} ${MESES_ABREV[inicio.getMonth()]} a ${fim.getDate()} ${MESES_ABREV[fim.getMonth()]}`;
 };
 
+
+const MINUTO = 60 * 1000;
+const HORA = 60 * MINUTO;
+const DIA = 24 * HORA;
+
+/** Ex.: "agora", "há 12 min", "há 1 h", "há 2 dias", "há 1 mês". */
+export const tempoRelativo = (iso: string, agora: Date = new Date()): string => {
+    const diferenca = Math.max(0, agora.getTime() - new Date(iso).getTime());
+
+    if (diferenca < MINUTO) return 'agora';
+    if (diferenca < HORA) return `há ${Math.floor(diferenca / MINUTO)} min`;
+    if (diferenca < DIA) return `há ${Math.floor(diferenca / HORA)} h`;
+
+    const dias = Math.floor(diferenca / DIA);
+    if (dias < 30) return dias === 1 ? 'há 1 dia' : `há ${dias} dias`;
+
+    const meses = Math.floor(dias / 30);
+    return meses === 1 ? 'há 1 mês' : `há ${meses} meses`;
+};
+
+/** true se a data ISO está dentro dos últimos `dias` dias. */
+export const ehRecente = (iso: string, dias: number, agora: Date = new Date()): boolean =>
+    agora.getTime() - new Date(iso).getTime() <= dias * DIA;
+
+/** "Helena Matos" -> "HM" (primeira e última palavras do nome); "?" se não houver nome. */
+export const iniciais = (nome?: string | null): string => {
+    const partes = (nome ?? '').trim().split(/\s+/).filter(Boolean);
+    if (partes.length === 0) return '?';
+    if (partes.length === 1) return partes[0][0].toUpperCase();
+    return (partes[0][0] + partes[partes.length - 1][0]).toUpperCase();
+};
