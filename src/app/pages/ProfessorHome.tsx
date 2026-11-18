@@ -456,16 +456,9 @@ const styles = StyleSheet.create({
     topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
     topoTextos: { flex: 1, paddingRight: 12 },
     titulo: { fontSize: 26, fontWeight: '700', color: COR.tinta },
-    subtitulo: { fontSize: 13, color: COR.tintaSuave, marginTop: 2 },
-    avatar: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
-        backgroundColor: COR.destaque,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    avatarTexto: { color: '#FFFFFF', fontSize: 14, fontWeight: '700' },
+    subtitulo: { fontSize: 10, color: COR.tintaSuave, marginTop: 2 },
+   
+   
 
     // Espaço ao redor do card da aula mais próxima
     proximaBox: { marginBottom: 14 },

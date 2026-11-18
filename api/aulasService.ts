@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Aula } from '../data/entities/aula';
 import { formatarHora, paraISO } from '../data/formatacao';
 import { supabase } from '../src/app/supabase';
@@ -36,6 +37,15 @@ import { supabase } from '../src/app/supabase';
 //   }
 //   return aulas;
 // }
+function timeout<T>(promise: Promise<T>, time: number): Promise<T> {
+    return Promise.race([
+        promise,
+        new Promise<T>((_, reject) =>
+            setTimeout(() => reject(new Error("Tempo limite excedido")), time)
+        )
+    ]);
+}
+
 
 export async function buscarAulasDaSemana(inicioSemana: Date, idProfessor: number | undefined): Promise<Aula[]> {
   // Simula a latência de rede para você testar o estado de carregamento.
@@ -47,9 +57,11 @@ export async function buscarAulasDaSemana(inicioSemana: Date, idProfessor: numbe
 
   if(error){
     console.log("Erro buscando dados: " + error);
-    throw new Error();
+    const prevData = await AsyncStorage.getItem("aulas");
+    return JSON.parse(prevData ? prevData : "");
   }
 
+  await AsyncStorage.setItem("aulas", JSON.stringify(data));
    
   return data.map((item): Aula =>({
   id: String(item.id),

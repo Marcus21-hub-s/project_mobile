@@ -72,3 +72,4 @@ export async function handleLogin({ email, password, onError, onSuccess }: Login
 
     onSuccess({ userId: data.user.id, professor });
 }
+
