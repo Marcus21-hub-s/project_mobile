@@ -24,6 +24,7 @@ import NextClassCard from '../../../components/NextClassCard';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../../../data/ensalamento';
 import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../../../data/formatacao';
 
+import { RefreshControl } from 'react-native';
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
 /* -------------------------------------------------------------------------- */
@@ -39,13 +40,14 @@ export default function ProfessorHome() {
     const [diaSelecionado, setDiaSelecionado] = useState<string>(hojeISO);
     const [aulas, setAulas] = useState<Aula[]>([]);
     const [carregando, setCarregando] = useState(false);
+    const [atualizando, setAtualizando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
 
     // Relógio da tela: atualiza a cada 30 s para o card do topo manter o "faltam ..." correto
     const [agora, setAgora] = useState(() => new Date());
 
 
-    const {professor, encerrarSessao} = useAuth();
+    const { professor, encerrarSessao } = useAuth();
 
     const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     // Guarda a posição vertical (y) de cada dia para o scroll ao tocar na faixa de dias.
@@ -56,49 +58,55 @@ export default function ProfessorHome() {
         () => Array.from({ length: QTD_DIAS }, (_, i) => somarDias(inicioSemana, i)),
         [inicioSemana],
     );
-
-    /** Carrega as aulas sempre que a semana muda (a busca em si está em services/aulasService.ts). */
-    const carregar = useCallback(async () => {
-        setCarregando(true);
+    const buscar = useCallback(async (withOverlay: boolean) => {
+        withOverlay ? setCarregando(true) : setAtualizando(true);
         setErro(null);
         try {
             setAulas(await buscarAulasDaSemana(inicioSemana, professor?.id));
         } catch (e) {
             setErro('Não foi possível carregar as aulas desta semana.');
         } finally {
-            setCarregando(false);
+            withOverlay ? setCarregando(false) : setAtualizando(false);
         }
     }, [inicioSemana]);
+
+    // Carga inicial e "Tentar de novo". Continua sem ligação com o foco da tela
+    const carregar = useCallback(() => buscar(true), [buscar]);
+
+    const puxarParaAtualizar = useCallback(() => {
+        setAgora(new Date());
+        buscar(false);
+    }, [buscar]);
 
 
     // Pedido de confirmação pra sair
     useFocusEffect(
         useCallback(() => {
-        const backHandler = BackHandler.addEventListener(
-            'hardwareBackPress',
-            () => {
-                Alert.alert("Tem certeza que deseja sair?", null,
-                    [
-                        {
-                            text: 'Cancelar',
-                            onPress: () => null,
-                            style: 'cancel',
-                        },
-                        {
-                            text: 'Sim',
-                            onPress: async () => {
-                                await encerrarSessao();
-                                router.replace("/");
+            const backHandler = BackHandler.addEventListener(
+                'hardwareBackPress',
+                () => {
+                    Alert.alert("Tem certeza que deseja sair?", null,
+                        [
+                            {
+                                text: 'Cancelar',
+                                onPress: () => null,
+                                style: 'cancel',
                             },
-                        }
-                    ]
+                            {
+                                text: 'Sim',
+                                onPress: async () => {
+                                    await encerrarSessao();
+                                    router.replace("/");
+                                },
+                            }
+                        ]
 
-                )
-                return true;
-            }
-        );
-        return () => backHandler.remove();
-    }, [encerrarSessao]));
+                    )
+                    return true;
+                }
+            );
+            return () => backHandler.remove();
+        }, [encerrarSessao]));
 
     useEffect(() => {
         console.log(aulas[0]);
@@ -127,7 +135,7 @@ export default function ProfessorHome() {
     const nomeProfessor = professor?.nome;
     const intervaloCurto = formatarIntervaloCurto(dias[0], dias[dias.length - 1]);
 
-    
+
     // /** Troca de semana (delta = -1 anterior, +1 próxima) e escolhe um dia selecionado coerente. */
     // const mudarSemana = (delta: number) => {
     //     const novoInicio = somarDias(inicioSemana, delta * 7);
@@ -168,7 +176,7 @@ export default function ProfessorHome() {
                         </Text>
                     </View>
 
-                   
+
                 </View>
 
                 {/* Card da aula em andamento / mais próxima (componente Header reaproveitado) */}
@@ -212,7 +220,7 @@ export default function ProfessorHome() {
                     </Pressable>
                 </View>
                 */}
-                
+
                 {/* Faixa de dias: atalho para pular até o dia no scroll */}
                 <View style={styles.faixaDias}>
                     {dias.map((d) => {
@@ -262,32 +270,44 @@ export default function ProfessorHome() {
                     ref={scrollRef}
                     contentContainerStyle={[styles.conteudo, ehTablet && styles.conteudoTablet]}
                     showsVerticalScrollIndicator={false}
-                >
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={atualizando}
+                            onRefresh={puxarParaAtualizar}
+                            colors={[COR.destaque]}  // cor do indicador no Android
+                            tintColor={COR.destaque} // cor do indicador no iOS
+                        />}
+                        >
 
-                    {dias.map((d) => {
-                        const iso = paraISO(d);
-                        return (
-                            <SecaoDia
-                                key={iso}
-                                data={d}
-                                ehHoje={iso === hojeISO}
-                                aulas={aulasPorDia[iso] ?? []}
-                                larguraTablet={ehTablet}
-                                aoMedir={(e: LayoutChangeEvent) => {
-                                    posicoesDias.current[iso] = e.nativeEvent.layout.y;
-                                }}
-                            />
-                        );
-                    })}
+                        {
+                            dias.map((d) => {
+                                const iso = paraISO(d);
+                                return (
+                                    <SecaoDia
+                                        key={iso}
+                                        data={d}
+                                        ehHoje={iso === hojeISO}
+                                        aulas={aulasPorDia[iso] ?? []}
+                                        larguraTablet={ehTablet}
+                                        aoMedir={(e: LayoutChangeEvent) => {
+                                            posicoesDias.current[iso] = e.nativeEvent.layout.y;
+                                        }}
+                                    />
+                                );
+                            })
+                        }
                 </ScrollView>
-            )}
+    )
+}
 
-            {carregando && (
-                <View style={styles.carregando}>
-                    <ActivityIndicator color={COR.destaque} />
-                </View>
-            )}
-        </SafeAreaView>
+{
+    carregando && (
+        <View style={styles.carregando}>
+            <ActivityIndicator color={COR.destaque} />
+        </View>
+    )
+}
+        </SafeAreaView >
     );
 }
 
@@ -352,7 +372,7 @@ function CartaoAula({ aula }: { aula: Aula }) {
 
             <Pressable onPress={() => router.push({
                 pathname: "/pages/ProfessorRequests",
-                params: {aula: JSON.stringify(aula)}
+                params: { aula: JSON.stringify(aula) }
             })}>
                 {({ pressed }) => (
                     <View
@@ -457,8 +477,8 @@ const styles = StyleSheet.create({
     topoTextos: { flex: 1, paddingRight: 12 },
     titulo: { fontSize: 26, fontWeight: '700', color: COR.tinta },
     subtitulo: { fontSize: 10, color: COR.tintaSuave, marginTop: 2 },
-   
-   
+
+
 
     // Espaço ao redor do card da aula mais próxima
     proximaBox: { marginBottom: 14 },
