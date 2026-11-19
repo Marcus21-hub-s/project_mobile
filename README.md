@@ -35,7 +35,7 @@ Abaixo estão os integrantes do grupo e suas respectivas áreas de atuação na 
 | :--- | :--- | :--- |
 | **Gerente Front Mobile** | • Marcus Vinícius *(Dev)* | Liderança do desenvolvimento front-end mobile e arquitetura do app. |
 | **No-Code** | • Gabriel Andrade<br>• Kaio Mariano | Prototipagem, automação e desenvolvimento via ferramentas No-Code. |
-| **Dev Alunos** | • Welson Dias<br>• Mayara Rayanne<br>• Micaías Alexandre<br> • Vinícius Aragão| Desenvolvimento das telas, fluxos e funcionalidades focadas no aluno. |
+| **Dev Alunos** | • Welson Dias<br>• Mayara Rayanne<br>• Micaías Alexandre<br>• Vinícius Aragão | Desenvolvimento das telas, fluxos e funcionalidades focadas no aluno. |
 | **Dev Professor** | • João M.<br>• Gabriel Rodrigues | Implementação das regras de negócio e interfaces focadas nos docentes. |
 | **Design (UX/UI)** | • Guilherme Alves<br>• Matheus Barcelar<br>• Irlania Felix | Criação dos protótipos de baixa/alta fidelidade e guia de estilo visual. |
 
@@ -43,11 +43,44 @@ Abaixo estão os integrantes do grupo e suas respectivas áreas de atuação na 
 
 ## 🛠️ Tecnologias Utilizadas
 
-*(Adicione aqui as tecnologias utilizadas no projeto)*
-- Framework Mobile: 
-- Backend / Banco de Dados: Supabase (PostgreSQL & Auth JWT)
-- Ferramentas No-Code: 
-- UI/UX Design: Figma
+- **Framework Mobile:** React Native / Expo
+- **Backend / Banco de Dados:** Supabase (PostgreSQL & Auth JWT)
+- **Ferramentas No-Code:** *(Adicione aqui)*
+- **UI/UX Design:** Figma
+
+---
+
+## 📦 Dependências do Projeto
+
+### Core & Ecossistema Expo
+- `expo`
+- `expo-router`
+- `expo-constants`
+- `expo-device`
+- `expo-linking`
+- `expo-notifications`
+- `expo-web-browser`
+
+### Interface, Estilização & Mídia
+- `@expo/ui`
+- `expo-font`
+- `expo-glass-effect`
+- `expo-image`
+- `expo-splash-screen`
+- `expo-status-bar`
+- `expo-symbols`
+- `expo-system-ui`
+
+### React Native, Navegação & Animações
+- `react`
+- `react-dom`
+- `react-native`
+- `react-native-web`
+- `react-native-gesture-handler`
+- `react-native-reanimated`
+- `react-native-safe-area-context`
+- `react-native-screens`
+- `react-native-worklets`
 
 ---
 
