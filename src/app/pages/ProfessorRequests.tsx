@@ -26,6 +26,7 @@ import type { Solicitacao } from "../../../data/entities/solicitacao";
 import { encontrarProximaAula, inicioDaSemana } from "../../../data/formatacao";
 
 import { useAuth } from '../../../api/authContext';
+import OfflineBanner from "../../../components/OfflineBanner";
 
 /**
  * A aula chega pela navegação como texto JSON no parâmetro `aula`, por exemplo:
@@ -123,6 +124,9 @@ export default function ProfessorRequests() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
+
+
+                    <OfflineBanner text="Não será possível fazer solicitações até haver conexão"/>
                     {/* Topo */}
                     <View style={styles.topo}>
                         <Text style={styles.titulo}>Solicitar troca</Text>

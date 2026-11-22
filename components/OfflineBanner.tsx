@@ -6,7 +6,6 @@
  *   porque o hook useConexao re-renderiza o componente a cada mudança.
  *
  */
-import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useConexao } from '../hooks/use-conexao';
@@ -14,7 +13,11 @@ import { useConexao } from '../hooks/use-conexao';
 const colors = { warnBg: 'FEF3C7', warnText: '#92400E' };
 const radius = { md: 12};
 
-export default function OfflineBanner() {
+type OfflineBannerProps={
+  text: string;
+}
+
+export default function OfflineBanner(text: OfflineBannerProps) {
   // Hooks sempre vêm ANTES de qualquer "return" condicional (regra do React).
   const { offline } = useConexao();
 
@@ -35,7 +38,7 @@ export default function OfflineBanner() {
 
       <View style={{ flex: 1 }}>
         <Text style={styles.titulo}>Sem conexão com a internet</Text>
-        <Text style={styles.detalhe}>Você está vendo os últimos dados carregados.</Text>
+        <Text style={styles.detalhe}>{text.text}</Text>
       </View>
     </View>
   );

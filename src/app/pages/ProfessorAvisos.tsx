@@ -13,9 +13,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../../api/authContext";
 import { buscarAvisos, marcarAvisoComoLido } from "../../../api/avisosService";
 import AvisoCard from "../../../components/AvisoCard";
+import OfflineBanner from "../../../components/OfflineBanner";
 import { COR } from "../../../data/cores";
-import { DIAS_PARA_SER_NOVO, contarNaoLidos } from "../../../data/entities/aviso";
 import type { Aviso } from "../../../data/entities/aviso";
+import { DIAS_PARA_SER_NOVO, contarNaoLidos } from "../../../data/entities/aviso";
 import { ehRecente, iniciais } from "../../../data/formatacao";
 
 type Aba = "novos" | "anteriores";
@@ -97,6 +98,8 @@ export default function ProfessorAvisos() {
     return (
         <SafeAreaView style={styles.tela} edges={["top"]}>
             <StatusBar barStyle="dark-content" />
+
+            <OfflineBanner text="Novo avisos não serão mostrados"/>
 
             {/* Topo: título + subtítulo à esquerda, avatar com as iniciais à direita */}
             <View style={styles.topo}>

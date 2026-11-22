@@ -19,12 +19,12 @@ import { buscarAulasDaSemana } from '../../../api/aulasService';
 import { COR } from '../../../data/cores';
 import type { Aula, AulasPorDia } from '../../../data/entities/aula';
 // Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
+import { RefreshControl } from 'react-native';
 import { useAuth } from '../../../api/authContext';
 import NextClassCard from '../../../components/NextClassCard';
+import OfflineBanner from '../../../components/OfflineBanner';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../../../data/ensalamento';
 import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../../../data/formatacao';
-
-import { RefreshControl } from 'react-native';
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
 /* -------------------------------------------------------------------------- */
@@ -45,7 +45,6 @@ export default function ProfessorHome() {
 
     // Relógio da tela: atualiza a cada 30 s para o card do topo manter o "faltam ..." correto
     const [agora, setAgora] = useState(() => new Date());
-
 
     const { professor, encerrarSessao } = useAuth();
 
@@ -167,6 +166,9 @@ export default function ProfessorHome() {
 
             <View style={styles.cabecalho}>
                 {/* Topo: título, professor + semana e avatar com as iniciais */}
+
+                <OfflineBanner text="Você está vendo os últimos dados carregados"/> 
+
                 <View style={styles.topo}>
                     <View style={styles.topoTextos}>
                         <Text style={styles.titulo}>Minhas aulas</Text>

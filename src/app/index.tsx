@@ -16,14 +16,18 @@ import {
 import { useAuth } from "../../api/authContext";
 import { handleLogin } from "../../api/login";
 import Logo from "../../components/Logo";
+import OfflineBanner from "../../components/OfflineBanner";
 import { COR } from "../../data/cores";
+import { useConexao } from "../../hooks/use-conexao";
 
 export default function Page() {
   const [matricula, setMatricula] = useState("");
   const [senha, setSenha] = useState("");
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
-  const [errorview, setErrorview] = useState("")
+  const [errorview, setErrorview] = useState("");
+
+  const {offline} = useConexao();
 
   const { iniciarSessao } = useAuth();
 
@@ -44,10 +48,16 @@ export default function Page() {
   
   }
 
+
   const submitLogin = async () => {
     if ((matricula.length == 0 || senha.length == 0) ||
       (matricula.length > 1000 || senha.length > 1000)) {
       setErrorview("Adicione um valor válido.")
+      return;
+    }
+
+    if(offline){
+      setErrorview("Não foi possível comunicar com o servidor");
       return;
     }
 
@@ -74,12 +84,15 @@ export default function Page() {
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
       >
-        
+         
         {carregando && (
           <View style={styles.carregando}>
             <ActivityIndicator color={COR.destaque} />
           </View>
-        )}
+        )}  
+
+        <OfflineBanner text="Por favor, conecte-se com uma rede"/>
+
         {/* Logos no topo */}
         <View style={styles.logoContainer}>
           <Logo />
@@ -90,7 +103,6 @@ export default function Page() {
           {/* Barrinha amarela: mesmo destaque usado no "Hoje" da tela de aulas */}
           <View style={styles.titleAccent} />
           <Text style={styles.titleText}>Saiba para qual sala ir. Nunca mais se perca no campus</Text>
-
           {/* Selo que indica o tipo de acesso desta tela */}
           <View style={styles.badge}>
             <Text style={styles.badgeText}>Acesso do professor</Text>
@@ -165,6 +177,8 @@ export default function Page() {
               Entrar
             </Text>
           </TouchableOpacity>
+
+
 
           {/* Rodapé institucional, dentro do cartão */}
           <View style={styles.footer}>
