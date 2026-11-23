@@ -1,42 +1,52 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, } from 'react';
 import {
     ActivityIndicator,
     Alert,
+    BackHandler,
     LayoutChangeEvent,
     Pressable,
     ScrollView,
     StatusBar,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
     useWindowDimensions
 } from 'react-native';
 
+import { router, useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { buscarAulasDaSemana } from '../api/aulasService';
-import ClassSelectionModal from '../components/ClassSelectionModal';
-import type { Aula, AulasPorDia } from '../data/aula';
-import { COR } from '../data/cores';
-import { formatarIntervalo, inicioDaSemana, paraISO, somarDias } from '../data/datas';
-import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../data/ensalamento';
-import { DADOS_SALAS } from '../mocks/salasMock';
-
+import { buscarAulasDaSemana } from '../../../api/aulasService';
+import { COR } from '../../../data/cores';
+import type { Aula, AulasPorDia } from '../../../data/entities/aula';
+// Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
+import { RefreshControl } from 'react-native';
+import { useAuth } from '../../../api/authContext';
+import NextClassCard from '../../../components/NextClassCard';
+import OfflineBanner from '../../../components/OfflineBanner';
+import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../../../data/ensalamento';
+import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../../../data/formatacao';
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
 /* -------------------------------------------------------------------------- */
 
-export default function EnsalamentoScreen() {
+export default function ProfessorHome() {
     const { width } = useWindowDimensions();
     const ehTablet = width >= LARGURA_TABLET;
-
     const hojeISO = paraISO(new Date());
 
-    const [inicioSemana, setInicioSemana] = useState<Date>(() => inicioDaSemana(new Date()));
+    // Navegação entre semanas desativada. Para reativar, troque a linha abaixo por:
+    // const [inicioSemana, setInicioSemana] = useState<Date>(() => inicioDaSemana(new Date()));
+    const [inicioSemana] = useState<Date>(() => inicioDaSemana(new Date()));
     const [diaSelecionado, setDiaSelecionado] = useState<string>(hojeISO);
     const [aulas, setAulas] = useState<Aula[]>([]);
     const [carregando, setCarregando] = useState(false);
+    const [atualizando, setAtualizando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
+
+    // Relógio da tela: atualiza a cada 30 s para o card do topo manter o "faltam ..." correto
+    const [agora, setAgora] = useState(() => new Date());
+
+    const { professor, encerrarSessao } = useAuth();
 
     const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     // Guarda a posição vertical (y) de cada dia para o scroll ao tocar na faixa de dias.
@@ -47,23 +57,66 @@ export default function EnsalamentoScreen() {
         () => Array.from({ length: QTD_DIAS }, (_, i) => somarDias(inicioSemana, i)),
         [inicioSemana],
     );
-
-    /** Carrega as aulas sempre que a semana muda (a busca em si está em services/aulasService.ts). */
-    const carregar = useCallback(async () => {
-        setCarregando(true);
+    const buscar = useCallback(async (withOverlay: boolean) => {
+        withOverlay ? setCarregando(true) : setAtualizando(true);
         setErro(null);
         try {
-            setAulas(await buscarAulasDaSemana(inicioSemana));
+            setAulas(await buscarAulasDaSemana(inicioSemana, professor?.id));
         } catch (e) {
             setErro('Não foi possível carregar as aulas desta semana.');
         } finally {
-            setCarregando(false);
+            withOverlay ? setCarregando(false) : setAtualizando(false);
         }
     }, [inicioSemana]);
 
+    // Carga inicial e "Tentar de novo". Continua sem ligação com o foco da tela
+    const carregar = useCallback(() => buscar(true), [buscar]);
+
+    const puxarParaAtualizar = useCallback(() => {
+        setAgora(new Date());
+        buscar(false);
+    }, [buscar]);
+
+
+    // Pedido de confirmação pra sair
+    useFocusEffect(
+        useCallback(() => {
+            const backHandler = BackHandler.addEventListener(
+                'hardwareBackPress',
+                () => {
+                    Alert.alert("Tem certeza que deseja sair?", null,
+                        [
+                            {
+                                text: 'Cancelar',
+                                onPress: () => null,
+                                style: 'cancel',
+                            },
+                            {
+                                text: 'Sim',
+                                onPress: async () => {
+                                    await encerrarSessao();
+                                    router.replace("/");
+                                },
+                            }
+                        ]
+
+                    )
+                    return true;
+                }
+            );
+            return () => backHandler.remove();
+        }, [encerrarSessao]));
+
     useEffect(() => {
+        console.log(aulas[0]);
         carregar();
     }, [carregar]);
+
+    // Atualiza o relógio a cada 30 s (e limpa o intervalo ao sair da tela)
+    useEffect(() => {
+        const id = setInterval(() => setAgora(new Date()), 30000);
+        return () => clearInterval(id);
+    }, []);
 
     /** Agrupa e ordena as aulas por dia. */
     const aulasPorDia = useMemo<AulasPorDia>(() => {
@@ -75,39 +128,66 @@ export default function EnsalamentoScreen() {
         return mapa;
     }, [aulas]);
 
-    /** Troca de semana (delta = -1 anterior, +1 próxima) e escolhe um dia selecionado coerente. */
-    const mudarSemana = (delta: number) => {
-        const novoInicio = somarDias(inicioSemana, delta * 7);
-        setInicioSemana(novoInicio);
-        const hojeNaSemana = paraISO(inicioDaSemana(new Date())) === paraISO(novoInicio);
-        setDiaSelecionado(hojeNaSemana ? hojeISO : paraISO(novoInicio));
-        posicoesDias.current = {};
-        scrollRef.current?.scrollTo({ y: 0, animated: false });
-    };
+    /** Aula em andamento ou a mais próxima, para o card do topo. */
+    const proxima = useMemo(() => encontrarProximaAula(aulas, agora), [aulas, agora]);
 
-    const irParaHoje = () => {
-        const inicio = inicioDaSemana(new Date());
-        setInicioSemana(inicio);
-        setDiaSelecionado(hojeISO);
-        posicoesDias.current = {};
-        scrollRef.current?.scrollTo({ y: 0, animated: false });
-    };
+    const nomeProfessor = professor?.nome;
+    const intervaloCurto = formatarIntervaloCurto(dias[0], dias[dias.length - 1]);
+
+
+    // /** Troca de semana (delta = -1 anterior, +1 próxima) e escolhe um dia selecionado coerente. */
+    // const mudarSemana = (delta: number) => {
+    //     const novoInicio = somarDias(inicioSemana, delta * 7);
+    //     setInicioSemana(novoInicio);
+    //     const hojeNaSemana = paraISO(inicioDaSemana(new Date())) === paraISO(novoInicio);
+    //     setDiaSelecionado(hojeNaSemana ? hojeISO : paraISO(novoInicio));
+    //     posicoesDias.current = {};
+    //     scrollRef.current?.scrollTo({ y: 0, animated: false });
+    // };
+    //
+    // const irParaHoje = () => {
+    //     const inicio = inicioDaSemana(new Date());
+    //     setInicioSemana(inicio);
+    //     setDiaSelecionado(hojeISO);
+    //     posicoesDias.current = {};
+    //     scrollRef.current?.scrollTo({ y: 0, animated: false });
+    // };
+    //
+    // const semanaAtual = paraISO(inicioSemana) === paraISO(inicioDaSemana(new Date()));
 
     const selecionarDia = (iso: string) => {
         setDiaSelecionado(iso);
         scrollRef.current?.scrollTo({ y: posicoesDias.current[iso] ?? 0, animated: true });
     };
 
-    const semanaAtual = paraISO(inicioSemana) === paraISO(inicioDaSemana(new Date()));
-
     return (
         <SafeAreaView style={styles.tela}>
             <StatusBar barStyle="dark-content" />
 
-            {/* Cabeçalho: título + navegação entre semanas */}
             <View style={styles.cabecalho}>
+                {/* Topo: título, professor + semana e avatar com as iniciais */}
+
+                <OfflineBanner text="Você está vendo os últimos dados carregados"/> 
+
+                <View style={styles.topo}>
+                    <View style={styles.topoTextos}>
+                        <Text style={styles.titulo}>Minhas aulas</Text>
+                        <Text style={styles.subtitulo} numberOfLines={1}>
+                            {nomeProfessor ? `Prof. ${nomeProfessor} · ` : ''}
+                            {intervaloCurto}
+                        </Text>
+                    </View>
+
+
+                </View>
+
+                {/* Card da aula em andamento / mais próxima (componente Header reaproveitado) */}
+                <View style={styles.proximaBox}>
+                    <NextClassCard proxima={proxima} />
+                </View>
+
+                {/* NAVEGAÇÃO ENTRE SEMANAS (desativada): descomente para reativar
                 <View style={styles.cabecalhoTopo}>
-                    <Text style={styles.titulo}>Minhas aulas</Text>
                     {!semanaAtual && (
                         <Pressable onPress={irParaHoje} style={styles.botaoHoje} accessibilityRole="button">
                             <Text style={styles.botaoHojeTexto}>Voltar para hoje</Text>
@@ -141,6 +221,7 @@ export default function EnsalamentoScreen() {
                         <Text style={styles.setaTexto}>›</Text>
                     </Pressable>
                 </View>
+                */}
 
                 {/* Faixa de dias: atalho para pular até o dia no scroll */}
                 <View style={styles.faixaDias}>
@@ -161,14 +242,14 @@ export default function EnsalamentoScreen() {
                                     {DIAS_ABREV[d.getDay()]}
                                 </Text>
                                 <Text style={[styles.chipNumero, selecionado && styles.chipTextoSelecionado]}>{d.getDate()}</Text>
-                                {/* Pontinho: amarelo = hoje; cinza = há aula; vazio = sem aula */}
+                                {/* Pontinho: amarelo = hoje; verde-azulado = há aula; vazio = sem aula */}
                                 <View
                                     style={[
                                         styles.chipPonto,
                                         ehHoje
                                             ? { backgroundColor: COR.hoje }
                                             : temAula
-                                                ? { backgroundColor: selecionado ? '#FFFFFF' : COR.tintaSuave }
+                                                ? { backgroundColor: selecionado ? '#FFFFFF' : COR.destaque }
                                                 : { backgroundColor: 'transparent' },
                                     ]}
                                 />
@@ -191,31 +272,44 @@ export default function EnsalamentoScreen() {
                     ref={scrollRef}
                     contentContainerStyle={[styles.conteudo, ehTablet && styles.conteudoTablet]}
                     showsVerticalScrollIndicator={false}
-                >
-                    {carregando && (
-                        <View style={styles.carregando}>
-                            <ActivityIndicator color={COR.destaque} />
-                        </View>
-                    )}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={atualizando}
+                            onRefresh={puxarParaAtualizar}
+                            colors={[COR.destaque]}  // cor do indicador no Android
+                            tintColor={COR.destaque} // cor do indicador no iOS
+                        />}
+                        >
 
-                    {dias.map((d) => {
-                        const iso = paraISO(d);
-                        return (
-                            <SecaoDia
-                                key={iso}
-                                data={d}
-                                ehHoje={iso === hojeISO}
-                                aulas={aulasPorDia[iso] ?? []}
-                                larguraTablet={ehTablet}
-                                aoMedir={(e: LayoutChangeEvent) => {
-                                    posicoesDias.current[iso] = e.nativeEvent.layout.y;
-                                }}
-                            />
-                        );
-                    })}
+                        {
+                            dias.map((d) => {
+                                const iso = paraISO(d);
+                                return (
+                                    <SecaoDia
+                                        key={iso}
+                                        data={d}
+                                        ehHoje={iso === hojeISO}
+                                        aulas={aulasPorDia[iso] ?? []}
+                                        larguraTablet={ehTablet}
+                                        aoMedir={(e: LayoutChangeEvent) => {
+                                            posicoesDias.current[iso] = e.nativeEvent.layout.y;
+                                        }}
+                                    />
+                                );
+                            })
+                        }
                 </ScrollView>
-            )}
-        </SafeAreaView>
+    )
+}
+
+{
+    carregando && (
+        <View style={styles.carregando}>
+            <ActivityIndicator color={COR.destaque} />
+        </View>
+    )
+}
+        </SafeAreaView >
     );
 }
 
@@ -259,73 +353,109 @@ function SecaoDia({ data, ehHoje, aulas, larguraTablet, aoMedir }: SecaoDiaProps
 }
 
 /**
- * Cartão da aula. A sala é o elemento principal: fica numa "placa" escura à
- * direita, grande, como as placas de porta, para ser lida de relance.
+ * Aula na lista do dia: rótulo com o horário em cima e o cartão embaixo.
+ * A sala é o elemento principal do cartão: fica numa "placa" escura à direita,
+ * como as placas de porta, para ser lida de relance.
  */
-function CartaoAula({ aula }: { aula: Aula }) {
 
+function CartaoAula({ aula }: { aula: Aula }) {
     const [modalVisible, setModalVisible] = useState(false);
+    // Mostra o selo "Sala alterada" depois que o professor troca a sala por aqui.
+    // Quando a API informar a troca (ex.: um campo no registro da aula), use esse dado no lugar.
+    const [salaAlterada, setSalaAlterada] = useState(false);
 
     return (
-        <View
-            style={styles.cartao}
-            accessible
-            accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala}, ${aula.bloco}`}
-        >
-            <View style={[styles.cartaoFaixa, { backgroundColor: aula.cor }]} />
-
-            <View style={styles.cartaoHorario}>
-                <Text style={styles.horaInicio}>{aula.horaInicio}</Text>
-                <Text style={styles.horaFim}>{aula.horaFim}</Text>
+        <View style={styles.aulaBloco}>
+            {/* Rótulo do horário: início em destaque, fim mais suave */}
+            <View style={styles.rotuloHora}>
+                <Text style={styles.rotuloHoraInicio}>{aula.horaInicio}</Text>
+                <Text style={styles.rotuloHoraFim}>{aula.horaFim}</Text>
             </View>
 
-            <View style={styles.cartaoInfo}>
-                <Text style={styles.disciplina} numberOfLines={2}>
-                    {aula.disciplina}
-                </Text>
-                <Text style={styles.professor} numberOfLines={1}>
-                    {aula.professor}
-                </Text>
-            </View>
+            <Pressable onPress={() => router.push({
+                pathname: "/pages/ProfessorRequests",
+                params: { aula: JSON.stringify(aula) }
+            })}>
+                {({ pressed }) => (
+                    <View
+                        style={[
+                            styles.cartao,
+                            pressed && styles.cartaoPressionado
+                        ]}
+                        accessible
+                        accessibilityLabel={`${aula.disciplina}, das ${aula.horaInicio} às ${aula.horaFim}, sala ${aula.sala.nome}, bloco ${aula.sala.bloco}`}
+                    >
+                        <View
+                            style={[
+                                styles.cartaoFaixa,
+                                { backgroundColor: aula.cor }
+                            ]}
+                        />
 
-            <View style={styles.placa}>
-                <TouchableOpacity style={styles.placaToque} onPress={() => { setModalVisible(true) }}>
-                    <Text style={styles.placaSala} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
-                        {aula.sala}
-                    </Text>
-                    <Text style={styles.placaBloco} numberOfLines={1}>
-                        {aula.bloco}
-                    </Text>
-                </TouchableOpacity>
-            </View>
-            
-            <View>
-                <ClassSelectionModal isVisible={modalVisible} onClose={() => { setModalVisible(false) }}
-                    rooms={DADOS_SALAS.filter(room => room.ocupada == false)}
-                    onSelectRoom={(room) => {
-                        Alert.alert("Tem certeza que deseja solicitar troca de sala?", "A solicitação será enviada a coordenação imediatamente",
-                            [
-                                {
-                                    text: 'Cancelar',
-                                    style: 'cancel', // Apenas iOS
+                        <View style={styles.cartaoInfo}>
+                            <View style={styles.tituloLinha}>
+                                <Text style={styles.disciplina} numberOfLines={2}>
+                                    {aula.disciplina}
+                                </Text>
+                                {salaAlterada && (
+                                    <View style={styles.seloAlterada}>
+                                        <Text style={styles.seloAlteradaTexto}>Sala alterada</Text>
+                                    </View>
+                                )}
+                            </View>
+                            <Text style={styles.detalheAula} numberOfLines={1}>
+                                {aula.horaInicio} – {aula.horaFim} · {aula.turma.nome}
+                            </Text>
+                        </View>
+
+                        <View style={styles.placa}>
+                            <Text
+                                style={styles.placaSala}
+                                numberOfLines={1}
+                                adjustsFontSizeToFit
+                                minimumFontScale={0.6}
+                            >
+                                {aula.sala.nome}
+                            </Text>
+
+                            <Text style={styles.placaBloco} numberOfLines={1}>
+                                Bloco {aula.sala.bloco}
+                            </Text>
+                        </View>
+                    </View>
+                )}
+            </Pressable>
+
+            {/*
+            <ClassSelectionModal
+                isVisible={modalVisible}
+                onClose={() => setModalVisible(false)}
+                rooms=
+                onSelectRoom={(room) => {
+                    Alert.alert(
+                        "Tem certeza que deseja solicitar troca de sala?",
+                        "A solicitação será enviada a coordenação imediatamente",
+                        [
+                            {
+                                text: "Cancelar",
+                                style: "cancel",
+                            },
+                            {
+                                text: "OK",
+                                onPress: () => {
+                                    setSalaAlterada(true);
+                                    setModalVisible(false);
                                 },
-
-                                {
-                                    text: 'OK',
-                                    onPress: () => {
-                                        aula.sala = room.nome;
-                                        setModalVisible(false);
-                                    },
-                                },
-                            ],
-                            { cancelable: true }
-                        );
-                    }} />
-            </View>
-
+                            },
+                        ],
+                        { cancelable: true }
+                    );
+                }}
+            />*/}
         </View>
     );
 }
+
 
 /* -------------------------------------------------------------------------- */
 /*  ESTILOS                                                                   */
@@ -343,9 +473,25 @@ const styles = StyleSheet.create({
         borderBottomWidth: StyleSheet.hairlineWidth,
         borderBottomColor: COR.linha,
     },
+
+    // Topo: título + subtítulo à esquerda, avatar à direita
+    topo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
+    topoTextos: { flex: 1, paddingRight: 12 },
+    titulo: { fontSize: 26, fontWeight: '700', color: COR.tinta },
+    subtitulo: { fontSize: 10, color: COR.tintaSuave, marginTop: 2 },
+
+
+
+    // Espaço ao redor do card da aula mais próxima
+    proximaBox: { marginBottom: 14 },
+
+    // Estilos da navegação entre semanas (usados só pelo bloco comentado no JSX; pode manter)
     cabecalhoTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
-    titulo: { fontSize: 24, fontWeight: '700', color: COR.tinta, paddingBottom:30 },
-    botaoHoje: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16, backgroundColor: COR.tinta },
+    botaoHoje: {
+        paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
+        backgroundColor: COR.tinta,
+        marginLeft: 170
+    },
     botaoHojeTexto: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
 
     navegacaoSemana: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
@@ -369,22 +515,28 @@ const styles = StyleSheet.create({
     chipDia: {
         flex: 1,
         alignItems: 'center',
-        paddingVertical: 8,
+        paddingVertical: 10,
         borderRadius: 14,
         backgroundColor: COR.superficie,
         borderWidth: 1,
         borderColor: COR.linha,
     },
-    chipDiaSelecionado: { backgroundColor: COR.destaque, borderColor: COR.destaque },
+    chipDiaSelecionado: { backgroundColor: COR.tinta, borderColor: COR.tinta },
     chipSemana: { fontSize: 12, color: COR.tintaSuave, fontWeight: '600' },
-    chipNumero: { fontSize: 18, color: COR.tinta, fontWeight: '700', marginTop: 2 },
+    chipNumero: { fontSize: 20, color: COR.tinta, fontWeight: '700', marginTop: 2 },
     chipTextoSelecionado: { color: '#FFFFFF' },
     chipPonto: { width: 6, height: 6, borderRadius: 3, marginTop: 4 },
 
     // Conteúdo
     conteudo: { padding: 16, paddingBottom: 40 },
     conteudoTablet: { flexDirection: 'row', flexWrap: 'wrap', gap: 16 },
-    carregando: { position: 'absolute', top: 8, left: 0, right: 0, alignItems: 'center', zIndex: 1 },
+    carregando: {
+        ...StyleSheet.absoluteFill, // cobre a tela toda (topo, laterais e base)
+        alignItems: 'center',
+        justifyContent: 'center', // centraliza o spinner
+        backgroundColor: 'rgba(18, 38, 63, 0.75)', // tom da COR.tinta, igual ao fundo do modal
+        zIndex: 10,
+    },
 
     secao: { marginBottom: 20 },
     secaoTablet: { width: '31.5%', marginBottom: 0 }, // 3 colunas
@@ -404,24 +556,37 @@ const styles = StyleSheet.create({
     },
     vazioTexto: { color: COR.tintaSuave, fontSize: 14 },
 
+    // Aula: bloco com o rótulo de horário em cima e o cartão embaixo
+    aulaBloco: { marginBottom: 10 },
+    rotuloHora: { flexDirection: 'row', alignItems: 'baseline', gap: 6, marginBottom: 6, marginTop: 2 },
+    rotuloHoraInicio: { fontSize: 12, fontWeight: '700', color: COR.tinta },
+    rotuloHoraFim: { fontSize: 12, color: COR.tintaSuave },
+
     // Cartão da aula
     cartao: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: COR.superficie,
         borderRadius: 14,
-        marginBottom: 8,
         overflow: 'hidden',
         borderWidth: 1,
         borderColor: COR.linha,
     },
     cartaoFaixa: { width: 5, alignSelf: 'stretch' },
-    cartaoHorario: { width: 58, alignItems: 'center', paddingVertical: 12 },
-    horaInicio: { fontSize: 16, fontWeight: '700', color: COR.tinta },
-    horaFim: { fontSize: 13, color: COR.tintaSuave, marginTop: 2 },
-    cartaoInfo: { flex: 1, paddingVertical: 12, paddingRight: 8 },
-    disciplina: { fontSize: 16, fontWeight: '600', color: COR.tinta },
-    professor: { fontSize: 13, color: COR.tintaSuave, marginTop: 2 },
+    cartaoInfo: { flex: 1, paddingVertical: 12, paddingLeft: 14, paddingRight: 8 },
+    tituloLinha: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+    disciplina: { flex: 1, fontSize: 16, fontWeight: '700', color: COR.tinta },
+    detalheAula: { fontSize: 12, color: COR.tintaSuave, marginTop: 4 },
+
+    // Selo "Sala alterada"
+    seloAlterada: {
+        marginLeft: 8,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 8,
+        backgroundColor: 'rgba(242, 169, 0, 0.2)',
+    },
+    seloAlteradaTexto: { fontSize: 11, fontWeight: '700', color: '#8A5A00' },
 
     // Placa da sala (elemento de destaque)
     placa: {
@@ -435,11 +600,16 @@ const styles = StyleSheet.create({
     placaSala: { fontSize: 19, fontWeight: '800', color: '#FFFFFF', textAlign: 'center' },
     placaBloco: { fontSize: 8, color: '#B8C4D4', marginTop: 2, textAlign: 'center' },
 
-    placaToque: { alignSelf: 'stretch' }, // estilo do touchableopacity fora da placa de sala
+    //Desfoque ao tocar no card
+    cartaoPressionado: {
+        opacity: 0.65,
+        transform: [{ scale: 0.98 }],
+    },
 
     // Erro
     centro: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
     erroTexto: { fontSize: 16, color: COR.tinta, textAlign: 'center', marginBottom: 12 },
     botaoTentar: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, backgroundColor: COR.destaque },
     botaoTentarTexto: { color: '#FFFFFF', fontWeight: '600' },
+
 });
