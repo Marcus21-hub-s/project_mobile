@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COR } from "../data/cores";
-import { DIAS_ABREV, MESES_ABREV } from "../data/ensalamento";
-import type { Aula } from "../data/entities/aula";
+import { COR } from "../../data/cores";
+import { DIAS_ABREV, MESES_ABREV } from "../../data/ensalamento";
+import type { Aula } from "../../data/entities/aula";
 
 /** "2026-10-28" -> "Qua 28 out" */
 const dataCurta = (iso: string): string => {

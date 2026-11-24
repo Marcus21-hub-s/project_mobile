@@ -15,10 +15,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { buscarAulasDaSemana } from "../../../api/aulasService";
 import { buscarSalasParaTroca } from "../../../api/requestService";
-import AulaResumoCard from "../../../components/AulaResumoCard";
+import SolicitacaoCard from "../../../components/avisos/RequestCard";
+import Selo from "../../../components/avisos/Selo";
 import ClassSelectionModal from "../../../components/ClassSelectionModal";
-import SolicitacaoCard from "../../../components/RequestCard";
-import Selo from "../../../components/Selo";
+import AulaResumoCard from "../../../components/home/AulaResumoCard";
 import { COR } from "../../../data/cores";
 import type { Aula } from "../../../data/entities/aula";
 import type { Sala } from "../../../data/entities/sala";

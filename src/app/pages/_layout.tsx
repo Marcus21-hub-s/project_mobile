@@ -9,7 +9,7 @@ export default function PagesLayout() {
         headerShown: false,
         tabBarActiveTintColor: "#e9c020ff",
         tabBarInactiveTintColor: "#9f9696ff",
-        
+
 
         tabBarStyle: {
           backgroundColor: "#ffffffff",
@@ -17,7 +17,7 @@ export default function PagesLayout() {
           height: 55,
           paddingBottom: 6,
           paddingTop: 6,
-          
+
         },
       }}
     >
@@ -35,7 +35,17 @@ export default function PagesLayout() {
         }}
       />
 
-            <Tabs.Screen
+      <Tabs.Screen
+        name="ProfessorSalasLivres"
+        options={{
+          title: "Salas livres",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="grid-outline" color={color as string} size={size} />
+          ),
+        }}
+      />
+
+      <Tabs.Screen
         name="ProfessorAvisos"
         options={{
           title: "Avisos",

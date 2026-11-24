@@ -1,9 +1,9 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
 
+import Selo, { TomSelo } from "../components/avisos/Selo";
 import { COR } from "../data/cores";
 import type { Aviso, TipoAviso } from "../data/entities/aviso";
 import { tempoRelativo } from "../data/formatacao";
-import Selo, { TomSelo } from "./Selo";
 
 // Texto e cor do selo para cada tipo de aviso
 const TIPO: Record<TipoAviso, { texto: string; tom: TomSelo }> = {

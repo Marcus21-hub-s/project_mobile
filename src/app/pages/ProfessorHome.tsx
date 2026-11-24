@@ -21,7 +21,7 @@ import type { Aula, AulasPorDia } from '../../../data/entities/aula';
 // Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
 import { RefreshControl } from 'react-native';
 import { useAuth } from '../../../api/authContext';
-import NextClassCard from '../../../components/NextClassCard';
+import NextClassCard from '../../../components/home/NextClassCard';
 import OfflineBanner from '../../../components/OfflineBanner';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../../../data/ensalamento';
 import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../../../data/formatacao';

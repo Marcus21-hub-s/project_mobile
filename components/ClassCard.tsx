@@ -4,8 +4,8 @@ import {
     TouchableOpacity
 } from "react-native";
 
-import type { Sala } from "../data//entities/sala";
 import { COR } from "../data/cores";
+import type { Sala } from "../data/entities/sala";
 
 type ClassCardProps = {
     room: Sala;

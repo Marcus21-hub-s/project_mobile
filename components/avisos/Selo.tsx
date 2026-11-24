@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COR } from "../data/cores";
+import { COR } from "../../data/cores";
 
 /** Tom do selo: define a cor do fundo e do texto. */
 export type TomSelo = "sucesso" | "aviso" | "erro" | "neutro";

@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from "react-native";
 
-import { COR } from "../data/cores";
-import type { Solicitacao, StatusSolicitacao } from "../data/entities/solicitacao";
-import Selo, { TomSelo } from "./Selo";
+import { COR } from "../../data/cores";
+import type { Solicitacao, StatusSolicitacao } from "../../data/entities/solicitacao";
+import Selo, { TomSelo } from "../avisos/Selo";
 
 // Texto e cor do selo para cada situação
 const STATUS: Record<StatusSolicitacao, { texto: string; tom: TomSelo }> = {

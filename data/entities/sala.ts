@@ -6,4 +6,5 @@ export type Sala = {
     ocupada: boolean;
     capacidade: number;
     bloco: string;
+    recursos?: string[];
 };
