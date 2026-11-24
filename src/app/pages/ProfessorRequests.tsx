@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { buscarAulasDaSemana } from "../../../api/aulasService";
 import { buscarSalasParaTroca } from "../../../api/requestService";
 import SolicitacaoCard from "../../../components/avisos/RequestCard";
 import Selo from "../../../components/avisos/Selo";
@@ -23,11 +22,12 @@ import { COR } from "../../../data/cores";
 import type { Aula } from "../../../data/entities/aula";
 import type { Sala } from "../../../data/entities/sala";
 import type { Solicitacao } from "../../../data/entities/solicitacao";
-import { encontrarProximaAula, inicioDaSemana } from "../../../data/formatacao";
+import { encontrarProximaAula } from "../../../data/formatacao";
 
+import { lerAulasDoMes } from "../../../api/aulasService";
 import { useAuth } from '../../../api/authContext';
 import OfflineBanner from "../../../components/OfflineBanner";
-
+import { diaDeReferencia, mesISO } from "../../../data/formatacao";
 /**
  * A aula chega pela navegação como texto JSON no parâmetro `aula`, por exemplo:
  *   router.push({ pathname: "/pages/ProfessorRequests", params: { aula: JSON.stringify(aula) } })
@@ -66,7 +66,7 @@ export default function ProfessorRequests() {
 
         (async () => {
             try {
-                const aulas = await buscarAulasDaSemana(inicioDaSemana(new Date()), professor?.id);
+                const aulas = await lerAulasDoMes(professor?.id, mesISO(diaDeReferencia(new Date())));
                 if (!cancelado) setAulaProxima(encontrarProximaAula(aulas, new Date())?.aula ?? null);
             } catch (e) {
                 console.log("Erro buscando a aula mais próxima", e);

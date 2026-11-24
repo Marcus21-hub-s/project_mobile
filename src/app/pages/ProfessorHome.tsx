@@ -14,17 +14,16 @@ import {
 } from 'react-native';
 
 import { router, useFocusEffect } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { buscarAulasDaSemana } from '../../../api/aulasService';
-import { COR } from '../../../data/cores';
-import type { Aula, AulasPorDia } from '../../../data/entities/aula';
-// Para reativar a navegação entre semanas, importe também `formatarIntervalo` daqui
 import { RefreshControl } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { buscarAulasDoMes } from '../../../api/aulasService';
 import { useAuth } from '../../../api/authContext';
 import NextClassCard from '../../../components/home/NextClassCard';
 import OfflineBanner from '../../../components/OfflineBanner';
+import { COR } from '../../../data/cores';
 import { DIAS_ABREV, DIAS_COMPLETO, LARGURA_TABLET, MESES_ABREV, QTD_DIAS } from '../../../data/ensalamento';
-import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, somarDias } from '../../../data/formatacao';
+import type { Aula, AulasPorDia } from '../../../data/entities/aula';
+import { deISO, diaDeReferencia, encontrarProximaAula, formatarIntervalo, formatarIntervaloCurto, inicioDaSemana, mesISO, paraISO, somarDias } from '../../../data/formatacao';
 /* -------------------------------------------------------------------------- */
 /*  TELA PRINCIPAL                                                            */
 /* -------------------------------------------------------------------------- */
@@ -32,42 +31,55 @@ import { encontrarProximaAula, formatarIntervaloCurto, inicioDaSemana, paraISO, 
 export default function ProfessorHome() {
     const { width } = useWindowDimensions();
     const ehTablet = width >= LARGURA_TABLET;
-    const hojeISO = paraISO(new Date());
+    // Relógio da tela: atualiza a cada 30 s (card do topo, "Hoje" e virada de dia/semana/mês)
+    const [agora, setAgora] = useState(() => new Date());
+    const hojeISO = paraISO(agora);
 
-    // Navegação entre semanas desativada. Para reativar, troque a linha abaixo por:
-    // const [inicioSemana, setInicioSemana] = useState<Date>(() => inicioDaSemana(new Date()));
-    const [inicioSemana] = useState<Date>(() => inicioDaSemana(new Date()));
+    // Dia que define o mês e a semana exibidos: hoje; no domingo (sem aulas), já é a segunda seguinte.
+    // Depende só do dia (hojeISO), então não muda a cada tique do relógio.
+    const referencia = useMemo(() => diaDeReferencia(deISO(hojeISO)), [hojeISO]);
+    const mesExibido = mesISO(referencia); // "AAAA-MM": o único mês que a tela mostra
+    const inicioBase = useMemo(() => inicioDaSemana(referencia), [referencia]); // primeira semana (a atual)
+
+    // Semana exibida: começa na atual e só pode avançar até o fim do mês (ver mudarSemana)
+    const [inicioSemana, setInicioSemana] = useState<Date>(inicioBase);
     const [diaSelecionado, setDiaSelecionado] = useState<string>(hojeISO);
-    const [aulas, setAulas] = useState<Aula[]>([]);
+    const [aulas, setAulas] = useState<Aula[]>([]); // aulas do MÊS inteiro
     const [carregando, setCarregando] = useState(false);
     const [atualizando, setAtualizando] = useState(false);
     const [erro, setErro] = useState<string | null>(null);
 
-    // Relógio da tela: atualiza a cada 30 s para o card do topo manter o "faltam ..." correto
-    const [agora, setAgora] = useState(() => new Date());
-
     const { professor, encerrarSessao } = useAuth();
+    const professorId = professor?.id;
 
     const scrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
     // Guarda a posição vertical (y) de cada dia para o scroll ao tocar na faixa de dias.
     const posicoesDias = useRef<Record<string, number>>({});
 
-    /** Os dias (Date) da semana exibida. */
+    /** Os dias (Date) da semana exibida, só os que pertencem ao mês exibido. */
     const dias = useMemo(
-        () => Array.from({ length: QTD_DIAS }, (_, i) => somarDias(inicioSemana, i)),
-        [inicioSemana],
+        () => Array.from({ length: QTD_DIAS }, (_, i) => somarDias(inicioSemana, i))
+            .filter((d) => mesISO(d) === mesExibido),
+        [inicioSemana, mesExibido],
     );
-    const buscar = useCallback(async (withOverlay: boolean) => {
-        withOverlay ? setCarregando(true) : setAtualizando(true);
+
+    /**
+     * Busca as aulas do MÊS inteiro (uma requisição) e guarda no cache; ver api/aulasService.ts.
+     * Trocar de semana NÃO chama isto: as semanas são só recortes das aulas do mês já em memória.
+     */
+    const buscar = useCallback(async (comOverlay: boolean) => {
+        if (comOverlay) setCarregando(true);
+        else setAtualizando(true);
         setErro(null);
         try {
-            setAulas(await buscarAulasDaSemana(inicioSemana, professor?.id));
+            setAulas(await buscarAulasDoMes(professorId, mesExibido));
         } catch (e) {
-            setErro('Não foi possível carregar as aulas desta semana.');
+            setErro('Não foi possível carregar as aulas deste mês.');
         } finally {
-            withOverlay ? setCarregando(false) : setAtualizando(false);
+            if (comOverlay) setCarregando(false);
+            else setAtualizando(false);
         }
-    }, [inicioSemana]);
+    }, [professorId, mesExibido]);
 
     // Carga inicial e "Tentar de novo". Continua sem ligação com o foco da tela
     const carregar = useCallback(() => buscar(true), [buscar]);
@@ -107,10 +119,27 @@ export default function ProfessorHome() {
             return () => backHandler.remove();
         }, [encerrarSessao]));
 
+    // Carrega o mês quando a tela é criada (e se o mês virar). Sem professor logado não pede nada
     useEffect(() => {
-        console.log(aulas[0]);
+        if (professorId === undefined) return;
         carregar();
-    }, [carregar]);
+    }, [carregar, professorId]);
+
+    // Se o dia virou e a semana-base mudou (ex.: domingo), volta para ela
+    useEffect(() => {
+        setInicioSemana(inicioBase);
+    }, [inicioBase]);
+
+    // Ao trocar de semana: volta ao topo e descarta as posições medidas da semana anterior
+    useEffect(() => {
+        posicoesDias.current = {};
+        scrollRef.current?.scrollTo({ y: 0, animated: false });
+    }, [inicioSemana]);
+
+    // Seleciona hoje, se estiver na semana exibida; senão, o primeiro dia dela
+    useEffect(() => {
+        setDiaSelecionado(dias.some((d) => paraISO(d) === hojeISO) ? hojeISO : paraISO(dias[0]));
+    }, [dias, hojeISO]);
 
     // Atualiza o relógio a cada 30 s (e limpa o intervalo ao sair da tela)
     useEffect(() => {
@@ -135,25 +164,19 @@ export default function ProfessorHome() {
     const intervaloCurto = formatarIntervaloCurto(dias[0], dias[dias.length - 1]);
 
 
-    // /** Troca de semana (delta = -1 anterior, +1 próxima) e escolhe um dia selecionado coerente. */
-    // const mudarSemana = (delta: number) => {
-    //     const novoInicio = somarDias(inicioSemana, delta * 7);
-    //     setInicioSemana(novoInicio);
-    //     const hojeNaSemana = paraISO(inicioDaSemana(new Date())) === paraISO(novoInicio);
-    //     setDiaSelecionado(hojeNaSemana ? hojeISO : paraISO(novoInicio));
-    //     posicoesDias.current = {};
-    //     scrollRef.current?.scrollTo({ y: 0, animated: false });
-    // };
-    //
-    // const irParaHoje = () => {
-    //     const inicio = inicioDaSemana(new Date());
-    //     setInicioSemana(inicio);
-    //     setDiaSelecionado(hojeISO);
-    //     posicoesDias.current = {};
-    //     scrollRef.current?.scrollTo({ y: 0, animated: false });
-    // };
-    //
-    // const semanaAtual = paraISO(inicioSemana) === paraISO(inicioDaSemana(new Date()));
+    // Navegação entre semanas: só para frente e só dentro do mês exibido
+    const semanaAtual = paraISO(inicioSemana) === paraISO(inicioBase);
+    const podeVoltar = !semanaAtual; // a semana atual é a mais antiga permitida (o histórico fica em outra página)
+    const podeAvancar = mesISO(somarDias(inicioSemana, 7)) === mesExibido; // a próxima segunda ainda é do mês?
+
+    /** Troca de semana (delta = -1 anterior, +1 próxima); os limites acima valem aqui também. */
+    const mudarSemana = (delta: 1 | -1) => {
+        if (delta < 0 ? !podeVoltar : !podeAvancar) return;
+        setInicioSemana(somarDias(inicioSemana, delta * 7));
+    };
+
+    /** Volta para a semana atual (a seleção do dia de hoje é refeita pelo efeito acima). */
+    const irParaHoje = () => setInicioSemana(inicioBase);
 
     const selecionarDia = (iso: string) => {
         setDiaSelecionado(iso);
@@ -178,16 +201,7 @@ export default function ProfessorHome() {
                         </Text>
                     </View>
 
-
-                </View>
-
-                {/* Card da aula em andamento / mais próxima (componente Header reaproveitado) */}
-                <View style={styles.proximaBox}>
-                    <NextClassCard proxima={proxima} />
-                </View>
-
-                {/* NAVEGAÇÃO ENTRE SEMANAS (desativada): descomente para reativar
-                <View style={styles.cabecalhoTopo}>
+                    {/* Volta para a semana atual (só aparece em outras semanas) */}
                     {!semanaAtual && (
                         <Pressable onPress={irParaHoje} style={styles.botaoHoje} accessibilityRole="button">
                             <Text style={styles.botaoHojeTexto}>Voltar para hoje</Text>
@@ -195,12 +209,20 @@ export default function ProfessorHome() {
                     )}
                 </View>
 
+                {/* Card da aula em andamento / mais próxima (componente Header reaproveitado) */}
+                <View style={styles.proximaBox}>
+                    <NextClassCard proxima={proxima} />
+                </View>
+
+                {/* Navegação entre semanas: só para frente e só dentro do mês exibido */}
                 <View style={styles.navegacaoSemana}>
                     <Pressable
                         onPress={() => mudarSemana(-1)}
-                        style={styles.setaSemana}
+                        disabled={!podeVoltar}
+                        style={[styles.setaSemana, !podeVoltar && styles.setaDesativada]}
                         accessibilityRole="button"
                         accessibilityLabel="Semana anterior"
+                        accessibilityState={{ disabled: !podeVoltar }}
                         hitSlop={8}
                     >
                         <Text style={styles.setaTexto}>‹</Text>
@@ -213,15 +235,16 @@ export default function ProfessorHome() {
 
                     <Pressable
                         onPress={() => mudarSemana(1)}
-                        style={styles.setaSemana}
+                        disabled={!podeAvancar}
+                        style={[styles.setaSemana, !podeAvancar && styles.setaDesativada]}
                         accessibilityRole="button"
                         accessibilityLabel="Próxima semana"
+                        accessibilityState={{ disabled: !podeAvancar }}
                         hitSlop={8}
                     >
                         <Text style={styles.setaTexto}>›</Text>
                     </Pressable>
                 </View>
-                */}
 
                 {/* Faixa de dias: atalho para pular até o dia no scroll */}
                 <View style={styles.faixaDias}>
@@ -485,12 +508,10 @@ const styles = StyleSheet.create({
     // Espaço ao redor do card da aula mais próxima
     proximaBox: { marginBottom: 14 },
 
-    // Estilos da navegação entre semanas (usados só pelo bloco comentado no JSX; pode manter)
-    cabecalhoTopo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+    // Botão "Voltar para hoje" (no topo, à direita do título)
     botaoHoje: {
         paddingHorizontal: 12, paddingVertical: 6, borderRadius: 16,
         backgroundColor: COR.tinta,
-        marginLeft: 170
     },
     botaoHojeTexto: { color: '#FFFFFF', fontSize: 13, fontWeight: '600' },
 
@@ -505,6 +526,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: COR.linha,
     },
+    setaDesativada: { opacity: 0.35 }, // seta bloqueada (início/fim do intervalo permitido)
     setaTexto: { fontSize: 28, lineHeight: 30, color: COR.tinta, fontWeight: '600' },
     intervaloBox: { alignItems: 'center' },
     intervalo: { fontSize: 17, fontWeight: '700', color: COR.tinta },

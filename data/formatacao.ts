@@ -4,6 +4,18 @@ import { Aula, ProximaAula } from './entities/aula';
 
 // Helpers sem biblioteca externa; troque por date-fns/dayjs se preferir.
 
+/** "YYYY-MM-DD" -> Date local à meia-noite. */
+export const deISO = (iso: string): Date => {
+  const [ano, mes, dia] = iso.slice(0, 10).split('-').map(Number);
+  return new Date(ano, mes - 1, dia);
+};
+
+/** Mês de uma data no formato "AAAA-MM" (ex.: "2026-11"). */
+export const mesISO = (d: Date): string => paraISO(d).slice(0, 7);
+
+/** Dia que define o mês e a semana da tela de aulas: hoje; no domingo (sem aulas), a segunda seguinte. */
+export const diaDeReferencia = (hoje: Date): Date => (hoje.getDay() === 0 ? somarDias(hoje, 1) : hoje);
+
 /** Converte Date -> "YYYY-MM-DD" usando o fuso local (toISOString usaria UTC e erraria o dia). */
 export const paraISO = (d: Date): string => {
   const mm = String(d.getMonth() + 1).padStart(2, '0');
