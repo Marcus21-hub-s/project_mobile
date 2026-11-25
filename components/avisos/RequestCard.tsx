@@ -22,7 +22,7 @@ export default function SolicitacaoCard({ solicitacao }: SolicitacaoCardProps) {
         <View style={styles.card}>
             <View style={styles.info}>
                 <Text style={styles.disciplina} numberOfLines={1}>
-                    {solicitacao?.disciplina}
+                    {solicitacao?.turma}
                 </Text>
                 <Text style={styles.detalhe} numberOfLines={1}>
                     {solicitacao?.detalhe}

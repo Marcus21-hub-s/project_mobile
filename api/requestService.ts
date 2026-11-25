@@ -1,5 +1,6 @@
 import type { Aula } from "../data/entities/aula";
 import type { Sala } from "../data/entities/sala";
+import { Solicitacao } from "../data/entities/solicitacao";
 import { supabase } from "../src/app/supabase";
 
 /**
@@ -51,4 +52,18 @@ export async function buscarSalasParaTroca(aula: Aula): Promise<Sala[]> {
             capacidade: s.capacidade,
             ocupada: idsOcupados.has(s.id),
         }));
+}
+
+
+export async function buscarSolicitacoes(professor_id: number | undefined): Promise<Solicitacao[]> {
+    const {data, error} = await supabase.from('solicitacoes')
+    .select('*')
+    .eq('professor_id', professor_id);
+
+
+    if(error){
+        throw new Error(error?.message);
+    }
+
+    return data;
 }

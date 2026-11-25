@@ -9,7 +9,7 @@ export type StatusSolicitacao = "pendente" | "aceito" | "cancelada";
  */
 export type Solicitacao = {
     id: number;
-    disciplina: string;
+    turma: string;
     detalhe: string;
     status: StatusSolicitacao;
 };

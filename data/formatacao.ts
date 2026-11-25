@@ -49,8 +49,6 @@ export const formatarHora = (hora:string): string =>{
 
 
 
-
-
 /**
  * Resultado da busca pela aula mais próxima, já com os textos prontos para o card do topo.
  * - emAndamento: true quando a aula está acontecendo agora

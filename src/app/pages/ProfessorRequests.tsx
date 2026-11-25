@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { buscarSalasParaTroca } from "../../../api/requestService";
+import { buscarSalasParaTroca, buscarSolicitacoes } from "../../../api/requestService";
 import SolicitacaoCard from "../../../components/avisos/RequestCard";
 import Selo from "../../../components/avisos/Selo";
 import ClassSelectionModal from "../../../components/ClassSelectionModal";
@@ -28,11 +28,14 @@ import { lerAulasDoMes } from "../../../api/aulasService";
 import { useAuth } from '../../../api/authContext';
 import OfflineBanner from "../../../components/OfflineBanner";
 import { diaDeReferencia, mesISO } from "../../../data/formatacao";
+import { supabase } from "../supabase";
 /**
  * A aula chega pela navegação como texto JSON no parâmetro `aula`, por exemplo:
  *   router.push({ pathname: "/pages/ProfessorRequests", params: { aula: JSON.stringify(aula) } })
  * Devolve null se o parâmetro não existir ou estiver inválido.
  */
+
+import { ActivityIndicator } from "react-native";
 const lerAula = (param?: string): Aula | null => {
     if (!param) return null;
     try {
@@ -56,6 +59,8 @@ export default function ProfessorRequests() {
     const [erroSalas, setErroSalas] = useState(false);
     const [motivo, setMotivo] = useState("");
     const [modalVisivel, setModalVisivel] = useState(false);
+    const [carregando, setCarregando] = useState(false);
+    const [solicitacoes, setSolicitacoes] = useState<Solicitacao[] | null>(null);
 
     const {professor} = useAuth();
 
@@ -98,6 +103,16 @@ export default function ProfessorRequests() {
         };
     }, [aula]);
 
+    useEffect(()=>{
+       (async () => {
+            try {
+                setSolicitacoes(await buscarSolicitacoes(professor?.id));
+            } catch (e) {
+                console.log("Erro buscando a aula mais próxima", e);
+            }
+        })();
+    }, []);
+
     // Alunos da turma (se a aula trouxer a turma) para comparar com a capacidade da sala
     const alunos = aula?.turma?.qtd_alunos;
     const cabe = sala && alunos !== undefined ? sala.capacidade >= alunos : true;
@@ -105,11 +120,27 @@ export default function ProfessorRequests() {
     // TODO: enviar a solicitação quando a tabela de solicitações estiver pronta.
     // Dados disponíveis aqui: aula (aula.id), sala (sala.id, a sala desejada), motivo
     // e, pelo contexto (useAuth), o professor logado (professor.id).
-    const enviarSolicitacao = () => { };
+    const enviarSolicitacao = async () => { 
+        setCarregando(true);
+        const {error} = await supabase.from('solicitacoes')
+        .insert({
+            "motivo": motivo,
+            "tipo": 'TROCA',
+            "status": 'PENDENTE',
+            "professor_id": professor?.id,
+            "aula_id": aula?.id
+        });
+        setCarregando(false);
+
+        if(error){
+            throw new Error(error.message);
+        }
+        
+    };
 
     // TODO: carregar da tabela de solicitações do professor. Por enquanto são dois
     // cards vazios (null), só para mostrar o layout.
-    const solicitacoes: (Solicitacao | null)[] = [null, null];
+    
 
     return (
         <SafeAreaView style={styles.tela}>
@@ -124,8 +155,13 @@ export default function ProfessorRequests() {
                     keyboardShouldPersistTaps="handled"
                     showsVerticalScrollIndicator={false}
                 >
-
-
+                     {carregando && (
+                              <View style={styles.carregando}>
+                                <ActivityIndicator color={COR.destaque} />
+                              </View>
+                            )}  
+                    
+                    
                     <OfflineBanner text="Não será possível fazer solicitações até haver conexão"/>
                     {/* Topo */}
                     <View style={styles.topo}>
@@ -216,7 +252,7 @@ export default function ProfessorRequests() {
                     {/* Minhas solicitações */}
                     <Text style={styles.secao}>Minhas solicitações</Text>
                     <View style={styles.lista}>
-                        {solicitacoes.map((solicitacao, i) => (
+                        {solicitacoes?.map((solicitacao, i) => (
                             <SolicitacaoCard key={solicitacao?.id ?? `vazio-${i}`} solicitacao={solicitacao} />
                         ))}
                     </View>
@@ -321,4 +357,11 @@ const styles = StyleSheet.create({
     // Minhas solicitações
     secao: { fontSize: 18, fontWeight: "700", color: COR.tinta, marginTop: 28, marginBottom: 12 },
     lista: { gap: 10 },
+    carregando: {
+    ...StyleSheet.absoluteFill, // cobre a tela toda (topo, laterais e base)
+    alignItems: 'center',
+    justifyContent: 'center', // centraliza o spinner
+    backgroundColor: 'rgba(18, 38, 63, 0.75)', // tom da COR.tinta, igual ao fundo do modal
+    zIndex: 10,
+  },
 });

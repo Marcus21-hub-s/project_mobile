@@ -1,3 +1,4 @@
+import { Recurso } from "./recurso";
 
 // definição do tipo Sala (vai ser alterado depois, baseado na tabela do banco)
 export type Sala = {
@@ -6,5 +7,5 @@ export type Sala = {
     ocupada: boolean;
     capacidade: number;
     bloco: string;
-    recursos?: string[];
+    recursos?: Recurso[];
 };
