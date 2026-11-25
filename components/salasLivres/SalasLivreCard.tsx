@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     nome: {
-        marginTop: 10,
+        
         fontSize: 18,
         fontWeight: "800",
         color: COR.tinta,
