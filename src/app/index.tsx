@@ -162,7 +162,7 @@ export default function Page() {
           {/* Recuperação de senha */}
           <TouchableOpacity
             style={styles.forgotPassword}
-            onPress={() => console.log("Recuperar senha")}
+            onPress={() => router.push("/forgot-password")}
           >
             <Text style={styles.forgotPasswordText}>
               Esqueci minha senha

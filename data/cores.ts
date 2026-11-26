@@ -6,6 +6,8 @@ export const COR = {
   tintaSuave: '#5B6B80',
   linha: '#D9E0EA',
   destaque: '#0E7C86', // dia selecionado
-  hoje: '#F2A900', // marcador do dia atual
-  header: "#113056ff"
+  hoje: '#F5B800', // marcador do dia atual
+  header: "#113056ff",
+  malandro: "#1AA0A8",
+  atencao: "#C2012E"
 };
