@@ -5,12 +5,13 @@ import { supabase } from "../src/app/supabase";
  * Lê a coluna `recursos` da sala (ex.: Projetor, Ar-cond.). Aceita uma lista (text[] / jsonb)
  * ou um texto separado por vírgulas. Se a coluna não existir, devolve lista vazia.
  */
-const formatarRecursos = (valor: unknown): string[] => {
-   if (!Array.isArray(valor)) return [];
+const formatarRecursos = (ligacoes: unknown): string[] => {
+   if (!Array.isArray(ligacoes)) return [];
 
-    const nomes = valor
-        .filter((r) => r?.status !== "INDISPONIVEL" && r?.status !== "MANUTENÇÃO")
-        .map((r) => String(typeof r === "string" ? r : r?.nome ?? "").trim())
+    const nomes = ligacoes
+        .map((ligacao) => ligacao?.recursos)
+        .filter((r) => r && r.status !== "INDISPONIVEL" && r.status !== "MANUTENÇÃO")
+        .map((r) => String(r.nome ?? "").trim())
         .filter(Boolean);
 
     return [...new Set(nomes)];
@@ -24,7 +25,7 @@ const formatarRecursos = (valor: unknown): string[] => {
 export async function buscarSalasNoHorario(data: string, hora: string): Promise<Sala[]> {
     const [salasResp, ocupadasResp] = await Promise.all([
         // Todas as salas cadastradas
-        supabase.from("salas").select("*, recursos(*)"),
+        supabase.from("salas").select("*, recursos_sala(recursos(*))"),
 
         // Aulas do dia que estão acontecendo na hora escolhida
         supabase

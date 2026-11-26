@@ -122,13 +122,15 @@ export default function ProfessorRequests() {
     // e, pelo contexto (useAuth), o professor logado (professor.id).
     const enviarSolicitacao = async () => { 
         setCarregando(true);
-        const {error} = await supabase.from('solicitacoes')
+        const {error} = await supabase.from('solicitacoes_troca')
         .insert({
             "motivo": motivo,
             "tipo": 'TROCA',
             "status": 'PENDENTE',
             "professor_id": professor?.id,
-            "aula_id": aula?.id
+            "aula_id": aula?.id,
+            "dest_sala_id": sala?.id,
+            "sala_id": aula?.sala.id
         });
         setCarregando(false);
 
